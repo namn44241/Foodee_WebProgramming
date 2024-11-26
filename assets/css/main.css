@@ -1,8 +1,8 @@
 /*Foodee
-Template Name: Fruitkha - Responsive Bootstrap4 Shop Template
+Template Name: Fruitkha - Responsive Bootstrap4 Menu Template
 Template URI: 
 Description: Bootstrap template for fruits or any other kind of shop
-Author: Imran Hossain
+Author: Nam Nguyễn
 Author URI: https://imransdesign.com/
 Version: 1.0
 */
@@ -19,7 +19,7 @@ html {
 }
 
 body {
-  font-family: "Open Sans", sans-serif;
+  font-family: "Roboto", sans-serif;
   font-weight: 400;
   font-size: 1rem;
   letter-spacing: 0.1px;
@@ -51,7 +51,7 @@ h3, .h3,
 h4, .h4,
 h5, .h5,
 h6, .h6 {
-  font-family: "Poppins", sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-weight: 700;
   margin: 0 0 1.25rem 0;
   color: #051922;
@@ -907,7 +907,7 @@ h2.widget-title:after {
   margin-bottom: 0;
 }
 
-.footer-box.subscribe form input[type=email] {
+.footer-box.Đăng ký nhận tin form input[type=email] {
   border: none;
   background-color: #012738;
   width: 78%;
@@ -917,7 +917,7 @@ h2.widget-title:after {
   color: #fff;
 }
 
-.footer-box.subscribe form button {
+.footer-box.Đăng ký nhận tin form button {
   width: 20%;
   border: none;
   background-color: #012738;
@@ -928,7 +928,7 @@ h2.widget-title:after {
   cursor: pointer;
 }
 
-.footer-box.subscribe form button:focus {
+.footer-box.Đăng ký nhận tin form button:focus {
   outline: none;
 }
 
@@ -1125,13 +1125,13 @@ a.tof-btn:hover i {
   color: #F28123;
 }
 
-.footer-box.subscribe form button {
+.footer-box.Đăng ký nhận tin form button {
   -webkit-transition: 0.3s;
   -o-transition: 0.3s;
   transition: 0.3s;
 }
 
-.footer-box.subscribe form button:hover {
+.footer-box.Đăng ký nhận tin form button:hover {
   background-color: #F28123;
   color: #051922;
 }
@@ -2041,7 +2041,7 @@ p.testimonial-body {
 
 /* -----------------------------------------------------------------------------
 
-# About Styles
+# Về chúng tôi Styles
 
 ----------------------------------------------------------------------------- */
 a.video-play-btn {
@@ -2111,7 +2111,7 @@ a.video-play-btn {
 
 /* -----------------------------------------------------------------------------
 
-# Shop Banner Styles
+# Menu Banner Styles
 
 ----------------------------------------------------------------------------- */
 .shop-banner {
@@ -2149,7 +2149,7 @@ a.video-play-btn {
 
 /* -----------------------------------------------------------------------------
 
-# About Page Styles
+# Về chúng tôi Page Styles
 
 ----------------------------------------------------------------------------- */
 .feature-bg {
@@ -2245,7 +2245,7 @@ ul.social-link-team li a {
 
 /* -----------------------------------------------------------------------------
 
-# Contact Page Styles
+# Thông tin liên hệ Page Styles
 
 ----------------------------------------------------------------------------- */
 .form-title {
@@ -2369,7 +2369,7 @@ ul.social-link-team li a {
 
 /* -----------------------------------------------------------------------------
 
-# Shop Page Styles
+# Menu Page Styles
 
 ----------------------------------------------------------------------------- */
 .product-filters {
@@ -2754,4 +2754,14 @@ table.order-details tbody td {
   display: table-cell;
   vertical-align: middle;
   width: 100%;
+}
+
+.promo-text {
+  line-height: 0.75;
+  margin-bottom: 20px;
+}
+
+.promo-text .orange-text {
+  display: block;
+  margin-top: 10px;
 }

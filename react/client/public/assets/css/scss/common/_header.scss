@@ -10,16 +10,23 @@ ul.navbar-nav li.nav-item {
 }
 
 .top-header-area {
-  position: absolute;
-  z-index: 999;
+  position: fixed; /* Thay đổi từ absolute thành fixed */
+  z-index: 9999; /* Tăng z-index lên cao hơn */
   width: 100%;
   padding: 25px 0;
+  transition: all 0.2s ease-out;
+  background-color: transparent; /* Thêm background transparent ban đầu */
 
-  &.white ul.navbar-nav li.nav-item {
-    a.nav-link, &.active a.nav-link {
-      color: $white-color;
-    }
+  &.stick {
+    background-color: #051922;
+    padding: 15px 0;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
   }
+}
+
+/* Xóa bỏ phần sticky-wrapper không cần thiết */
+.sticky-wrapper {
+  display: none;
 }
 
 ul.navbar-nav li.nav-item {
@@ -220,10 +227,6 @@ nav.main-menu {
     background-color: $text-color;
     padding: 15px 0;
   }
-}
-
-.top-header-area {
-  transition: 0.3s;
 }
 
 ul.navbar-nav {

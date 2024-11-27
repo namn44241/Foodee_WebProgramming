@@ -1,5 +1,6 @@
 // src/components/layout/Footer.js
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 function Footer() {
   return (
@@ -28,10 +29,10 @@ function Footer() {
               <div className="footer-box pages">
                 <h2 className="widget-title">Pages</h2>
                 <ul>
-                  <li><a href="index.html">Trang chủ</a></li>
-                  <li><a href="about.html">Về chúng tôi</a></li>
-                  <li><a href="contact.html">Thông tin liên hệ</a></li>
-                  <li><a href="shop.html">Menu</a></li>
+                    <li><Link to="/">Trang chủ</Link></li>
+                    <li><Link to="/about">Về chúng tôi</Link></li>
+                    <li><Link to="/contact">Thông tin liên hệ</Link></li>
+                    <li><Link to="/shop">Menu</Link></li>
                 </ul>
               </div>
             </div>

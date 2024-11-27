@@ -1,63 +1,64 @@
 // src/components/layout/Header.js
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Link, NavLink } from 'react-router-dom';
 
 function Header() {
-  useEffect(() => {
-    const initHeader = () => {
-      if (window.jQuery) {
-        // Khởi tạo mean menu cho mobile
-        window.jQuery('.main-menu').meanmenu({
-          meanMenuContainer: '.mobile-menu',
-          meanScreenWidth: "992"
-        });
+    const [isSticky, setIsSticky] = useState(false);
 
-        // Khởi tạo sticky header
-        window.jQuery(window).on('scroll', function() {
-          if (window.jQuery(window).scrollTop() > 200) {
-            window.jQuery('#sticker').addClass('stick');
-          } else {
-            window.jQuery('#sticker').removeClass('stick');
-          }
-        });
+    useEffect(() => {
+      const handleScroll = () => {
+        // Giảm ngưỡng xuống 50px để header dính nhanh hơn
+        if (window.scrollY > 50) {
+          setIsSticky(true);
+        } else {
+          setIsSticky(false);
+        }
+      };
 
-        // Khởi tạo search popup
-        window.jQuery('.search-bar-icon').on('click', function() {
-          window.jQuery('.search-area').addClass('search-active');
-        });
-      } else {
-        setTimeout(initHeader, 100);
-      }
-    };
-
-    initHeader();
-  }, []);
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
   return (
-    <div className="top-header-area" id="sticker">
+    <div className={`top-header-area ${isSticky ? 'stick' : ''}`}>
       <div className="container">
         <div className="row">
           <div className="col-lg-12 col-sm-12 text-center">
             <div className="main-menu-wrap">
               <div className="site-logo">
-                <a href="index.html">
+                <Link to="/">
                   <img src="assets/img/logo.png" alt="" />
-                </a>
+                </Link>
               </div>
               <nav className="main-menu">
                 <ul>
-                  <li className="current-list-item"><a href="index.html">Trang chủ</a></li>
-                  <li><a href="about.html">Về chúng tôi</a></li>						
-                  <li><a href="contact.html">Thông tin liên hệ</a></li>
-                  <li><a href="shop.html">Menu</a></li>
+                  <li><NavLink to="/" className={({isActive}) => isActive ? "current-list-item" : ""}>
+                    Trang chủ
+                  </NavLink></li>
+                  <li><NavLink to="/about" className={({isActive}) => isActive ? "current-list-item" : ""}>
+                    Về chúng tôi
+                  </NavLink></li>						
+                  <li><NavLink to="/contact" className={({isActive}) => isActive ? "current-list-item" : ""}>
+                    Thông tin liên hệ
+                  </NavLink></li>
+                  <li><NavLink to="/shop" className={({isActive}) => isActive ? "current-list-item" : ""}>
+                    Menu
+                  </NavLink></li>
                   <li>
                     <div className="header-icons">
-                      <a className="shopping-cart" href="cart.html"><i className="fas fa-shopping-cart"></i></a>
-                      <a className="mobile-hide search-bar-icon" href="#"><i className="fas fa-search"></i></a>
+                      <Link className="shopping-cart" to="/cart">
+                        <i className="fas fa-shopping-cart"></i>
+                      </Link>
+                      <a className="mobile-hide search-bar-icon" href="#">
+                        <i className="fas fa-search"></i>
+                      </a>
                     </div>
                   </li>
                 </ul>
               </nav>
-              <a className="mobile-show search-bar-icon" href="#"><i className="fas fa-search"></i></a>
+              <a className="mobile-show search-bar-icon" href="#">
+                <i className="fas fa-search"></i>
+              </a>
               <div className="mobile-menu"></div>
             </div>
           </div>

@@ -9,6 +9,8 @@ import SearchArea from './components/common/SearchArea.js';
 import Home from './components/home/Home.js';
 import About from './components/about/About.js';
 import Footer from './components/layout/Footer.js';
+import Contact from './components/contact/Contact.js';
+
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -58,6 +60,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
             </Routes>
             <Footer />
           </>

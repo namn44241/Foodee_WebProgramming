@@ -11,6 +11,7 @@ import About from './components/about/About.js';
 import Footer from './components/layout/Footer.js';
 import Contact from './components/contact/Contact.js';
 import Menu from './components/menu/Menu';
+import Cart from './components/cart/Cart';
 
 
 function App() {
@@ -63,6 +64,8 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/menu" element={<Menu />} />
+              <Route path="/cart" element={<Cart />} />
+
             </Routes>
             <Footer />
           </>

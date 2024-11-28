@@ -5,7 +5,9 @@ function ProductFilters({ currentFilter, onFilterChange }) {
     { id: '*', name: 'All' },
     { id: 'strawberry', name: 'Strawberry' },
     { id: 'berry', name: 'Berry' },
-    { id: 'lemon', name: 'Lemon' }
+    { id: 'lemon', name: 'Lemon' },
+    { id: 'avocado', name: 'Avocado' },
+    { id: 'apple', name: 'Apple' }
   ];
 
   return (

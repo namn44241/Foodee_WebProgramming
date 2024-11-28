@@ -41,7 +41,7 @@ function Header() {
                   <li><NavLink to="/contact" className={({isActive}) => isActive ? "current-list-item" : ""}>
                     Thông tin liên hệ
                   </NavLink></li>
-                  <li><NavLink to="/shop" className={({isActive}) => isActive ? "current-list-item" : ""}>
+                  <li><NavLink to="/menu" className={({isActive}) => isActive ? "current-list-item" : ""}>
                     Menu
                   </NavLink></li>
                   <li>

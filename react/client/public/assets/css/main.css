@@ -2765,3 +2765,23 @@ table.order-details tbody td {
   display: block;
   margin-top: 10px;
 }
+
+/* Thêm vào phần product-lists trong CSS */
+.product-lists {
+  transition: all 0.3s ease-out;
+}
+
+.single-product-item {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

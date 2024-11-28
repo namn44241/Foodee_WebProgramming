@@ -1,6 +1,7 @@
 CREATE DATABASE IF NOT EXISTS foodee_app;
 
 -- Grant privileges
+CREATE USER IF NOT EXISTS 'baitap'@'%' IDENTIFIED BY '1';
 GRANT ALL PRIVILEGES ON foodee_app.* TO 'baitap'@'%';
 FLUSH PRIVILEGES;
 
@@ -61,10 +62,15 @@ CREATE TABLE orders (
 
 -- Initial Data
 INSERT INTO users (username, password, role) 
-VALUES 
-('admin', '1', 'admin'),
-('staff1', '1', 'staff'),
-('kitchen1', '1', 'kitchen');
+VALUES ('admin', SHA2('1', 256), 'admin');
+
+INSERT INTO users (username, password, role) 
+VALUES ('staff1', SHA2('1', 256), 'staff');
+
+INSERT INTO users (username, password, role) 
+VALUES ('kitchen1', SHA2('1', 256), 'kitchen');
+
+
 
 INSERT INTO categories (name, description) VALUES
 ('Món chính', 'Các món ăn chính'),

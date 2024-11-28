@@ -14,6 +14,7 @@ import Menu from './components/menu/Menu';
 import Cart from './components/cart/Cart';
 import Checkout from './components/checkout/Checkout';
 import SingleProduct from './components/product/SingleProduct';
+import AdminLogin from './components/admin/auth/AdminLogin';
 
 
 function App() {
@@ -69,6 +70,7 @@ function App() {
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} /> 
               <Route path="/product/:id" element={<SingleProduct />} /> 
+              <Route path="/admin/login" element={<AdminLogin />} />
 
             </Routes>
             <Footer />

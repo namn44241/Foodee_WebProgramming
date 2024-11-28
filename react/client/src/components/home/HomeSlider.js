@@ -63,7 +63,7 @@ function HomeSlider() {
                   <p className="subtitle">Sạch & Tươi ngon</p>
                   <h1>Mừng Bạn Đã Tới Nhà Hàng </h1>
                   <div className="hero-btns">
-                    <a href="shop" className="boxed-btn">Đặt món</a>
+                    <a href="menu" className="boxed-btn">Đặt món</a>
                     <a href="contact" className="bordered-btn">Cần trợ giúp?</a>
                   </div>
                 </div>
@@ -83,7 +83,7 @@ function HomeSlider() {
                   <p className="subtitle">Giảm Giá Sốc Tháng 12</p>
                   <h1>Chuẩn "Cơm Mẹ Nấu" Với Các Đầu Bếp Hàng Đầu</h1>
                   <div className="hero-btns">
-                    <a href="shop" className="boxed-btn">Đặt món</a>
+                    <a href="menu" className="boxed-btn">Đặt món</a>
                     <a href="contact" className="bordered-btn">Cần trợ giúp?</a>
                   </div>
                 </div>
@@ -103,7 +103,7 @@ function HomeSlider() {
                   <p className="subtitle">Tươi mới - Mỗi ngày</p>
                   <h1>100% Nguyên Liệu Chuẩn OCOP 4 Sao</h1>
                   <div className="hero-btns">
-                    <a href="shop" className="boxed-btn">Đặt món</a>
+                    <a href="menu" className="boxed-btn">Đặt món</a>
                     <a href="contact" className="bordered-btn">Cần trợ giúp?</a>
                   </div>
                 </div>

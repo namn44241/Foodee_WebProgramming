@@ -52,6 +52,9 @@ function Header() {
                       <a className="mobile-hide search-bar-icon" href="#">
                         <i className="fas fa-search"></i>
                       </a>
+                      <Link className="admin-profile" to="/admin/login">
+                        <i className="fas fa-user-circle"></i>
+                      </Link>
                     </div>
                   </li>
                 </ul>

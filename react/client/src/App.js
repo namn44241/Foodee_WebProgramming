@@ -13,6 +13,7 @@ import Contact from './components/contact/Contact.js';
 import Menu from './components/menu/Menu';
 import Cart from './components/cart/Cart';
 import Checkout from './components/checkout/Checkout';
+import SingleProduct from './components/product/SingleProduct';
 
 
 function App() {
@@ -67,6 +68,7 @@ function App() {
               <Route path="/menu" element={<Menu />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} /> 
+              <Route path="/product/:id" element={<SingleProduct />} /> 
 
             </Routes>
             <Footer />

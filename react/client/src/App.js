@@ -12,6 +12,7 @@ import Footer from './components/layout/Footer.js';
 import Contact from './components/contact/Contact.js';
 import Menu from './components/menu/Menu';
 import Cart from './components/cart/Cart';
+import Checkout from './components/checkout/Checkout';
 
 
 function App() {
@@ -65,6 +66,7 @@ function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/menu" element={<Menu />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} /> 
 
             </Routes>
             <Footer />

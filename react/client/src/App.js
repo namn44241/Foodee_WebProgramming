@@ -4,18 +4,16 @@ import './App.css';
 
 // Import các components
 import Loader from './components/common/Loader.js';
-import Header from './components/layout/Header.js';
-import SearchArea from './components/common/SearchArea.js';
+import Layout from './components/layout/Layout';  
 import Home from './components/home/Home.js';
 import About from './components/about/About.js';
-import Footer from './components/layout/Footer.js';
 import Contact from './components/contact/Contact.js';
 import Menu from './components/menu/Menu';
 import Cart from './components/cart/Cart';
 import Checkout from './components/checkout/Checkout';
 import SingleProduct from './components/product/SingleProduct';
 import AdminLogin from './components/admin/auth/AdminLogin';
-
+import AdminLayout from './components/admin/layout/AdminLayout';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -30,54 +28,47 @@ function App() {
           meanMenuContainer: '.mobile-menu',
           meanScreenWidth: "992"
         });
-        
         setLoading(false);
       } else {
         setTimeout(initPlugins, 100);
       }
     };
-
     initPlugins();
   }, []);
 
-  // Effect cho việc xử lý chuyển trang
   useEffect(() => {
-    if (!loading) { // Chỉ xử lý khi không phải lần load đầu tiên
+    if (!loading) {
       setIsNavigating(true);
       window.scrollTo(0, 0);
-      
       const timer = setTimeout(() => {
         setIsNavigating(false);
       }, 800);
-
       return () => clearTimeout(timer);
     }
   }, [location.pathname, loading]);
 
-  return (
-    <div>
-      {(loading || isNavigating) && <Loader />}
-      <div className={!loading && !isNavigating ? 'content-wrapper' : ''}>
-        {!loading && !isNavigating && (
-          <>
-            <Header />
-            <SearchArea />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/menu" element={<Menu />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} /> 
-              <Route path="/product/:id" element={<SingleProduct />} /> 
-              <Route path="/admin/login" element={<AdminLogin />} />
+  if (loading || isNavigating) {
+    return <Loader />;
+  }
 
-            </Routes>
-            <Footer />
-          </>
-        )}
-      </div>
-    </div>
+  return (
+    <Routes>
+      {/* Admin Routes */}
+      <Route path="/admin/*" element={<AdminLayout />}>
+        <Route path="login" element={<AdminLogin />} />
+      </Route>
+
+      {/* Public Routes */}
+      <Route element={<Layout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="about" element={<About />} />
+        <Route path="contact" element={<Contact />} />
+        <Route path="menu" element={<Menu />} />
+        <Route path="cart" element={<Cart />} />
+        <Route path="checkout" element={<Checkout />} />
+        <Route path="product/:id" element={<SingleProduct />} />
+      </Route>
+    </Routes>
   );
 }
 

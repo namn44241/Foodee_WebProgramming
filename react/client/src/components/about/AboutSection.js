@@ -16,7 +16,7 @@ function AboutSection() {
               <h2>We are <span className="orange-text">Foodee</span></h2>
               <p>Foodee - nơi hội tụ tinh hoa ẩm thực Việt Nam và quốc tế. Với hơn 20 năm kinh nghiệm, chúng tôi tự hào mang đến những trải nghiệm ẩm thực tuyệt vời nhất thông qua những món ăn được chế biến từ nguyên liệu tươi ngon, đảm bảo vệ sinh an toàn thực phẩm.</p>
               <p>Đội ngũ đầu bếp giàu kinh nghiệm của chúng tôi luôn tâm huyết trong từng món ăn, từ khâu chọn nguyên liệu đến cách chế biến và trình bày, nhằm mang đến cho thực khách những bữa ăn không chỉ ngon miệng mà còn đẹp mắt, xứng đáng với niềm tin của quý khách.</p>
-              <a href="about.html" className="boxed-btn mt-4">know more</a>
+              <a href="about" className="boxed-btn mt-4">know more</a>
             </div>
           </div>
         </div>

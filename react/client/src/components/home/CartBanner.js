@@ -59,7 +59,7 @@ function CartBanner() {
               </div>
             </div>
 
-            <a href="cart.html" className="cart-btn mt-3">
+            <a href="cart" className="cart-btn mt-3">
               <i className="fas fa-shopping-cart"></i> Thêm vào Giỏ
             </a>
           </div>

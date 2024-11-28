@@ -40,7 +40,7 @@ function Footer() {
               <div className="footer-box Đăng ký nhận tin">
                 <h2 className="widget-title">Đăng ký nhận tin</h2>
                 <p>Đăng ký nhận thông báo để cập nhật những tin tức mới nhất từ chúng tôi.</p>
-                <form action="index.html">
+                <form action="index">
                   <input type="email" placeholder="Email" />
                   <button type="submit"><i className="fas fa-paper-plane"></i></button>
                 </form>

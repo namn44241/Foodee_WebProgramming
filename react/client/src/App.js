@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import './App.css';
 
 // Import các components
@@ -14,6 +14,18 @@ import Checkout from './components/checkout/Checkout';
 import SingleProduct from './components/product/SingleProduct';
 import AdminLogin from './components/admin/auth/AdminLogin';
 import AdminLayout from './components/admin/layout/AdminLayout';
+import Dashboard from './components/admin/pages/dashboard/Dashboard';
+
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const role = localStorage.getItem('role');
+  const username = localStorage.getItem('username');
+  
+  if (!role || !username) {
+      return <Navigate to="/admin/login" />;
+  }
+  return children;
+};
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -54,9 +66,15 @@ function App() {
   return (
     <Routes>
       {/* Admin Routes */}
-      <Route path="/admin/*" element={<AdminLayout />}>
-        <Route path="login" element={<AdminLogin />} />
-      </Route>
+      <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={
+                <ProtectedRoute>
+                    <AdminLayout />
+                </ProtectedRoute>
+            }>
+                <Route path="dashboard" element={<Dashboard />} />
+                {/* Thêm các route admin khác ở đây */}
+            </Route>
 
       {/* Public Routes */}
       <Route element={<Layout />}>

@@ -15,6 +15,8 @@ import SingleProduct from './components/product/SingleProduct';
 import AdminLogin from './components/admin/auth/AdminLogin';
 import AdminLayout from './components/admin/layout/AdminLayout';
 import Dashboard from './components/admin/pages/dashboard/Dashboard';
+import AdminProducts from './components/admin/pages/products/AdminProducts.js';
+
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -73,7 +75,7 @@ function App() {
                 </ProtectedRoute>
             }>
                 <Route path="dashboard" element={<Dashboard />} />
-                {/* Thêm các route admin khác ở đây */}
+                <Route path="products" element={<AdminProducts />} />
             </Route>
 
       {/* Public Routes */}

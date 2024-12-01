@@ -7,6 +7,7 @@ function AdminProducts() {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [showForm, setShowForm] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         price: '',
@@ -122,18 +123,30 @@ function AdminProducts() {
         }
     };
 
+    // Hàm xử lý đóng form với animation
+    const handleCloseForm = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            setShowForm(false);
+            setIsClosing(false);
+        }, 500); // Thời gian bằng với thời gian animation
+    };
+
     return (
         <div className="admin-products">
             <div className="products-header">
                 <h2>Quản lý sản phẩm</h2>
-                <button onClick={() => setShowForm(!showForm)} className="add-product-btn">
+                <button 
+                    onClick={() => showForm ? handleCloseForm() : setShowForm(true)} 
+                    className="add-product-btn"
+                >
                     <i className="fas fa-plus"></i> {showForm ? 'Ẩn form' : 'Thêm sản phẩm'}
                 </button>
             </div>
 
             {/* Form thêm sản phẩm */}
             {showForm && (
-                <div className="product-form-container">
+                <div className={`product-form-container ${isClosing ? 'form-exit' : 'form-enter'}`}>
                     <div className="product-form">
                         <h3>Thêm sản phẩm mới</h3>
                         <form onSubmit={handleSubmit}>
@@ -198,7 +211,11 @@ function AdminProducts() {
                                 <button type="submit" className="submit-btn">
                                     <i className="fas fa-save"></i> Lưu
                                 </button>
-                                <button type="button" onClick={() => setShowForm(false)} className="cancel-btn">
+                                <button 
+                                    type="button" 
+                                    onClick={handleCloseForm} 
+                                    className="cancel-btn"
+                                >
                                     <i className="fas fa-times"></i> Hủy
                                 </button>
                             </div>

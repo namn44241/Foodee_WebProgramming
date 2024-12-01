@@ -27,16 +27,28 @@ function AdminLogin() {
             });
             return;
         }
-
+    
         try {
-            const response = await axios.post('http://localhost:5000/api/auth/login', {
+            const response = await axios.post('http://localhost:5001/api/auth/login', {
                 username,
                 password
             });
-
+    
+            console.log('Login response:', response.data); // Thêm log này
+    
             if (response.data.success) {
+                // Kiểm tra token có tồn tại
+                if (!response.data.token) {
+                    throw new Error('Token không được trả về từ server');
+                }
+    
+                localStorage.setItem('token', response.data.token);
                 localStorage.setItem('role', response.data.role);
                 localStorage.setItem('username', response.data.username);
+                
+                // Log thông tin đã lưu
+                console.log('Stored token:', localStorage.getItem('token'));
+                console.log('Stored role:', localStorage.getItem('role'));
                 
                 Swal.fire({
                     icon: 'success',
@@ -49,10 +61,11 @@ function AdminLogin() {
                 });
             }
         } catch (error) {
+            console.error('Login error:', error); // Thêm log lỗi chi tiết
             Swal.fire({
                 icon: 'error',
                 title: 'Lỗi đăng nhập',
-                text: error.response?.data?.message || 'Tài khoản hoặc mật khẩu không chính xác'
+                text: error.response?.data?.message || error.message || 'Tài khoản hoặc mật khẩu không chính xác'
             });
         }
     };

@@ -15,30 +15,54 @@ function AdminProducts() {
         category_id: '',
         image: null
     });
+    const [imagePreview, setImagePreview] = useState(null);
 
     // Fetch products và categories
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchCategories = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const [productsRes, categoriesRes] = await Promise.all([
-                    axios.get('http://localhost:5001/api/products', {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }),
-                    axios.get('http://localhost:5001/api/categories', {
-                        headers: { Authorization: `Bearer ${token}` }
-                    })
-                ]);
+                console.log('Token:', token); // Kiểm tra token
 
-                setProducts(productsRes.data.data);
-                setCategories(categoriesRes.data.data);
+                const categoriesRes = await axios.get('http://localhost:5001/api/categories', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                console.log('Categories Response:', categoriesRes.data); // Kiểm tra response
+
+                if (categoriesRes.data.success) {
+                    setCategories(categoriesRes.data.data);
+                } else {
+                    throw new Error(categoriesRes.data.message);
+                }
             } catch (error) {
-                console.error('Error fetching data:', error);
-                Swal.fire('Lỗi', 'Không thể tải dữ liệu', 'error');
+                console.error('Error fetching categories:', error);
+                Swal.fire('Lỗi', 'Không thể tải danh mục', 'error');
             }
         };
 
-        fetchData();
+        const fetchProducts = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const productsRes = await axios.get('http://localhost:5001/api/products', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                console.log('Products Response:', productsRes.data); // Kiểm tra response
+
+                if (productsRes.data.success) {
+                    setProducts(productsRes.data.data);
+                } else {
+                    throw new Error(productsRes.data.message);
+                }
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                Swal.fire('Lỗi', 'Không thể tải sản phẩm', 'error');
+            }
+        };
+
+        fetchCategories();
+        fetchProducts();
     }, []);
 
     const handleEdit = (product) => {
@@ -123,14 +147,43 @@ function AdminProducts() {
         }
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFormData({...formData, image: file});
+            // Tạo URL preview cho ảnh
+            const previewUrl = URL.createObjectURL(file);
+            setImagePreview(previewUrl);
+        }
+    };
+
     // Hàm xử lý đóng form với animation
     const handleCloseForm = () => {
         setIsClosing(true);
+        if (imagePreview) {
+            URL.revokeObjectURL(imagePreview);
+            setImagePreview(null);
+        }
         setTimeout(() => {
             setShowForm(false);
             setIsClosing(false);
+            setFormData({
+                name: '',
+                price: '',
+                description: '',
+                category_id: '',
+                image: null
+            });
         }, 500); // Thời gian bằng với thời gian animation
     };
+
+    useEffect(() => {
+        return () => {
+            if (imagePreview) {
+                URL.revokeObjectURL(imagePreview);
+            }
+        };
+    }, [imagePreview]);
 
     return (
         <div className="admin-products">
@@ -168,12 +221,19 @@ function AdminProducts() {
                                         required
                                     >
                                         <option value="">Chọn danh mục</option>
-                                        {categories && categories.map(category => (
-                                            <option key={category.id} value={category.id}>
-                                                {category.name}
-                                            </option>
-                                        ))}
+                                        {categories && categories.length > 0 ? (
+                                            categories.map(category => (
+                                                <option key={category.id} value={category.id}>
+                                                    {category.name} {/* Thêm console.log để kiểm tra */}
+                                                    {console.log('Rendering category:', category)}
+                                                </option>
+                                            ))
+                                        ) : (
+                                            <option value="" disabled>Không có danh mục nào</option>
+                                        )}
                                     </select>
+                                    {/* Thêm thông báo debug */}
+                                    {console.log('Current categories state:', categories)}
                                 </div>
                             </div>
 
@@ -189,12 +249,19 @@ function AdminProducts() {
                                 </div>
                                 <div className="form-group">
                                     <label>Hình ảnh</label>
-                                    <input
-                                        type="file"
-                                        onChange={(e) => setFormData({...formData, image: e.target.files[0]})}
-                                        accept="image/*"
-                                        required
-                                    />
+                                    <div className="image-upload-container">
+                                        {imagePreview && (
+                                            <div className="image-preview">
+                                                <img src={imagePreview} alt="Preview" />
+                                            </div>
+                                        )}
+                                        <input
+                                            type="file"
+                                            onChange={handleImageChange}
+                                            accept="image/*"
+                                            required
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -240,7 +307,22 @@ function AdminProducts() {
                         {products && products.map(product => (
                             <tr key={product.id}>
                                 <td>
-                                    <img src={product.image_url} alt={product.name} className="product-image" />
+                                    <div className="table-image-container">
+                                        {product.image_name ? (
+                                            <img 
+                                                src={`http://localhost:5001/uploads/products/${product.image_name}`}
+                                                alt={product.name} 
+                                                className="product-image"
+                                                onError={(e) => {
+                                                    console.log('Image load error:', e);
+                                                    e.target.onerror = null;
+                                                    e.target.src = 'https://via.placeholder.com/80'; // Ảnh placeholder
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="no-image">No Image</div>
+                                        )}
+                                    </div>
                                 </td>
                                 <td>{product.name}</td>
                                 <td>{product.category_name}</td>

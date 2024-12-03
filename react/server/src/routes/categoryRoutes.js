@@ -1,12 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const categoryController = require('../controllers/categoryController');
+const { auth } = require('../middleware/auth');
 
-router.get('/', (req, res) => {
-    res.json({ message: 'Get all categories' });
-});
-
-router.post('/', (req, res) => {
-    res.json({ message: 'Create category' });
-});
+// Route lấy danh sách danh mục
+router.get('/', auth, categoryController.getCategories);
 
 module.exports = router;

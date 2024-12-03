@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const db = require('./src/config/database');
+const path = require('path');
 
 const app = express();
 
@@ -9,6 +10,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Thêm middleware để serve static files
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Test database connection
 app.get('/api/test', async (req, res) => {

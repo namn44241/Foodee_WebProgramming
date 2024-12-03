@@ -1,31 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 function ProductSection() {
-  // Mock data - sau này có thể lấy từ API
-  const products = [
-    {
-      id: 1,
-      name: "Strawberry",
-      price: 85,
-      image: "assets/img/products/product-img-1.jpg",
-      category: "fruits"
-    },
-    {
-      id: 2,
-      name: "Berry",
-      price: 70,
-      image: "assets/img/products/product-img-2.jpg",
-      category: "fruits"
-    },
-    {
-      id: 3,
-      name: "Lemon",
-      price: 35,
-      image: "assets/img/products/product-img-3.jpg",
-      category: "fruits"
-    }
-  ];
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('http://localhost:5001/api/products');
+        if (response.data.success) {
+          setProducts(response.data.data);
+        } else {
+          throw new Error(response.data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setError('Không thể tải danh sách sản phẩm');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  if (loading) return <div className="text-center">Đang tải...</div>;
+  if (error) return <div className="text-center text-danger">{error}</div>;
 
   return (
     <div className="product-section mt-150 mb-150">
@@ -47,12 +50,19 @@ function ProductSection() {
               <div className="single-product-item">
                 <div className="product-image">
                   <Link to={`/product/${product.id}`}>
-                    <img src={product.image} alt={product.name} />
+                    <img 
+                      src={`http://localhost:5001/uploads/products/${product.image_name}`}
+                      alt={product.name}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/assets/img/products/default-product.jpg';
+                      }}
+                    />
                   </Link>
                 </div>
                 <h3>{product.name}</h3>
                 <p className="product-price">
-                  <span>Per Kg</span> {product.price}$
+                  <span>Per Kg</span> {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
                 </p>
                 <Link to="/cart" className="cart-btn">
                   <i className="fas fa-shopping-cart"></i> Thêm vào Giỏ

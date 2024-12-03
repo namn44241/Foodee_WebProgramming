@@ -1,61 +1,70 @@
-import React from 'react';
-import ProductItem from './ProductItem';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 function ProductList({ filter }) {
-  // Dữ liệu mẫu cho 6 sản phẩm
-  const products = [
-    {
-      id: 1,
-      name: 'Strawberry',
-      price: 85,
-      category: 'strawberry',
-      image: 'assets/img/products/product-img-1.jpg'
-    },
-    {
-      id: 2,
-      name: 'Berry',
-      price: 70,
-      category: 'berry', 
-      image: 'assets/img/products/product-img-2.jpg'
-    },
-    {
-      id: 3,
-      name: 'Lemon',
-      price: 35,
-      category: 'lemon',
-      image: 'assets/img/products/product-img-3.jpg'
-    },
-    {
-      id: 4,
-      name: 'Avocado',
-      price: 50,
-      category: 'avocado',
-      image: 'assets/img/products/product-img-4.jpg'
-    },
-    {
-      id: 5,
-      name: 'Green Apple',
-      price: 45,
-      category: 'apple',
-      image: 'assets/img/products/product-img-5.jpg'
-    },
-    {
-      id: 6,
-      name: 'Strawberry',
-      price: 80,
-      category: 'strawberry',
-      image: 'assets/img/products/product-img-6.jpg'
-    }
-  ];
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const filteredProducts = filter === '*' 
-    ? products 
-    : products.filter(product => product.category === filter);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('http://localhost:5001/api/products');
+        if (response.data.success) {
+          let filteredProducts = response.data.data;
+          
+          // Áp dụng filter nếu không phải '*'
+          if (filter !== '*') {
+            filteredProducts = filteredProducts.filter(product => 
+              product.category_id.toString() === filter
+            );
+          }
+          
+          setProducts(filteredProducts);
+        } else {
+          throw new Error(response.data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setError('Không thể tải danh sách sản phẩm');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [filter]);
+
+  if (loading) return <div className="text-center">Đang tải...</div>;
+  if (error) return <div className="text-center text-danger">{error}</div>;
 
   return (
     <div className="row product-lists">
-      {filteredProducts.map(product => (
-        <ProductItem key={product.id} product={product} />
+      {products.map(product => (
+        <div key={product.id} className="col-lg-4 col-md-6 text-center">
+          <div className="single-product-item">
+            <div className="product-image">
+              <Link to={`/product/${product.id}`}>
+                <img 
+                  src={`http://localhost:5001/uploads/products/${product.image_name}`}
+                  alt={product.name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/assets/img/products/default-product.jpg';
+                  }}
+                />
+              </Link>
+            </div>
+            <h3>{product.name}</h3>
+            <p className="product-price">
+              <span>Per Kg</span> {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
+            </p>
+            <Link to="/cart" className="cart-btn">
+              <i className="fas fa-shopping-cart"></i> Thêm vào Giỏ
+            </Link>
+          </div>
+        </div>
       ))}
     </div>
   );

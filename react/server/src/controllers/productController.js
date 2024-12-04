@@ -70,7 +70,7 @@ const productController = {
                 }
             });
         } catch (error) {
-            // Xử lý lỗi và xóa file nếu c��
+            // Xử lý lỗi và xóa file nếu c
             if (req.file) {
                 const filePath = path.join(__dirname, '../../public/uploads/products', req.file.filename);
                 if (fs.existsSync(filePath)) {
@@ -186,6 +186,71 @@ const productController = {
             res.status(500).json({
                 success: false,
                 message: 'Lỗi khi lấy danh sách sản phẩm'
+            });
+        }
+    },
+
+    // Lấy chi tiết sản phẩm
+    getPublicProductById: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const [rows] = await db.execute(`
+                SELECT p.*, c.name as category_name 
+                FROM products p 
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.id = ? AND p.is_available = 1
+            `, [id]);
+
+            if (rows.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Không tìm thấy sản phẩm'
+                });
+            }
+
+            res.json({
+                success: true,
+                data: rows[0]
+            });
+        } catch (error) {
+            console.error('Error getting product:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi lấy thông tin sản phẩm'
+            });
+        }
+    },
+
+    // Lấy sản phẩm liên quan (cùng danh mục)
+    getRelatedProducts: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const [product] = await db.execute('SELECT category_id FROM products WHERE id = ?', [id]);
+            
+            if (product.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Không tìm thấy sản phẩm'
+                });
+            }
+
+            const [rows] = await db.execute(`
+                SELECT p.*, c.name as category_name 
+                FROM products p 
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.category_id = ? AND p.id != ? AND p.is_available = 1
+                LIMIT 3
+            `, [product[0].category_id, id]);
+
+            res.json({
+                success: true,
+                data: rows
+            });
+        } catch (error) {
+            console.error('Error getting related products:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi lấy sản phẩm liên quan'
             });
         }
     }

@@ -69,7 +69,8 @@ function AdminProducts() {
             price: product.price,
             description: product.description,
             category_id: product.category_id,
-            image: null
+            image: null,
+            is_available: product.is_available
         });
         
         if (product.image_name) {
@@ -135,10 +136,9 @@ function AdminProducts() {
                 }
             });
 
-            let response;
             if (formData.id) {
                 // Cập nhật sản phẩm
-                response = await axios.put(
+                await axios.put(
                     `http://localhost:5001/api/products/${formData.id}`, 
                     formDataToSend,
                     {
@@ -151,7 +151,7 @@ function AdminProducts() {
                 Swal.fire('Thành công', 'Cập nhật sản phẩm thành công', 'success');
             } else {
                 // Thêm sản phẩm mới
-                response = await axios.post(
+                await axios.post(
                     'http://localhost:5001/api/products', 
                     formDataToSend,
                     {

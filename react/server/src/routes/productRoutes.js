@@ -4,23 +4,21 @@ const productController = require('../controllers/productController');
 const { upload, processImage } = require('../middleware/upload');
 const { auth, checkRole } = require('../middleware/auth');
 
-// Route cho user (public) - chỉ lấy sản phẩm đang bán
+// Public routes - không cần auth
 router.get('/public', productController.getPublicProducts);
+router.get('/public/:id', productController.getPublicProductById);
+router.get('/related/:id', productController.getRelatedProducts);
 
-// Route cho admin - lấy tất cả sản phẩm
+// Protected routes - yêu cầu auth và quyền admin
 router.get('/', auth, checkRole(['admin']), productController.getProducts);
 
-// Các routes yêu cầu đăng nhập và quyền admin
+// Middleware cho các routes admin
 router.use(auth);
 router.use(checkRole(['admin']));
 
-// Thêm sản phẩm mới
+// Routes quản lý sản phẩm (CRUD)
 router.post('/', upload.single('image'), processImage, productController.addProduct);
-
-// Cập nhật sản phẩm 
 router.put('/:id', upload.single('image'), processImage, productController.updateProduct);
-
-// Xóa sản phẩm
 router.delete('/:id', productController.deleteProduct);
 
 module.exports = router;

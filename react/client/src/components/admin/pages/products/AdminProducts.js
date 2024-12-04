@@ -13,7 +13,8 @@ function AdminProducts() {
         price: '',
         description: '',
         category_id: '',
-        image: null
+        image: null,
+        is_available: true
     });
     const [imagePreview, setImagePreview] = useState(null);
 
@@ -22,14 +23,10 @@ function AdminProducts() {
         const fetchCategories = async () => {
             try {
                 const token = localStorage.getItem('token');
-                console.log('Token:', token); // Kiểm tra token
-
-                const categoriesRes = await axios.get('http://localhost:5001/api/categories', {
+                const categoriesRes = await axios.get('http://localhost:5001/api/categories/active', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 
-                console.log('Categories Response:', categoriesRes.data); // Kiểm tra response
-
                 if (categoriesRes.data.success) {
                     setCategories(categoriesRes.data.data);
                 } else {
@@ -74,6 +71,13 @@ function AdminProducts() {
             category_id: product.category_id,
             image: null
         });
+        
+        if (product.image_name) {
+            setImagePreview(`http://localhost:5001/uploads/products/${product.image_name}`);
+        } else {
+            setImagePreview(null);
+        }
+        
         setShowForm(true);
     };
 
@@ -123,27 +127,52 @@ function AdminProducts() {
         try {
             const token = localStorage.getItem('token');
             const formDataToSend = new FormData();
+            
+            // Thêm các trường dữ liệu vào FormData
             Object.keys(formData).forEach(key => {
-                formDataToSend.append(key, formData[key]);
-            });
-
-            await axios.post('http://localhost:5001/api/products', formDataToSend, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
+                if (key !== 'image' || formData[key] !== null) {
+                    formDataToSend.append(key, formData[key]);
                 }
             });
 
-            Swal.fire('Thành công', 'Thêm sản phẩm thành công', 'success');
+            let response;
+            if (formData.id) {
+                // Cập nhật sản phẩm
+                response = await axios.put(
+                    `http://localhost:5001/api/products/${formData.id}`, 
+                    formDataToSend,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    }
+                );
+                Swal.fire('Thành công', 'Cập nhật sản phẩm thành công', 'success');
+            } else {
+                // Thêm sản phẩm mới
+                response = await axios.post(
+                    'http://localhost:5001/api/products', 
+                    formDataToSend,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    }
+                );
+                Swal.fire('Thành công', 'Thêm sản phẩm thành công', 'success');
+            }
+
             setShowForm(false);
             // Refresh products list
-            const response = await axios.get('http://localhost:5001/api/products', {
+            const productsResponse = await axios.get('http://localhost:5001/api/products', {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setProducts(response.data.data);
+            setProducts(productsResponse.data.data);
         } catch (error) {
-            console.error('Error adding product:', error);
-            Swal.fire('Lỗi', 'Không thể thêm sản phẩm', 'error');
+            console.error('Error submitting product:', error);
+            Swal.fire('Lỗi', 'Không thể lưu sản phẩm', 'error');
         }
     };
 
@@ -172,7 +201,8 @@ function AdminProducts() {
                 price: '',
                 description: '',
                 category_id: '',
-                image: null
+                image: null,
+                is_available: true
             });
         }, 500); // Thời gian bằng với thời gian animation
     };
@@ -259,8 +289,13 @@ function AdminProducts() {
                                             type="file"
                                             onChange={handleImageChange}
                                             accept="image/*"
-                                            required
+                                            required={!formData.id && !imagePreview} // Chỉ bắt buộc khi thêm mới và chưa có ảnh
                                         />
+                                        {formData.id && !formData.image && (
+                                            <small className="text-muted">
+                                                Để trống nếu không muốn thay đổi ảnh
+                                            </small>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -270,8 +305,24 @@ function AdminProducts() {
                                 <textarea
                                     value={formData.description}
                                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                                    required
                                 />
+                            </div>
+
+                            <div className="form-group">
+                                <div className="toggle-container">
+                                    <label>Trạng thái sản phẩm</label>
+                                    <label className="switch">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.is_available}
+                                            onChange={(e) => setFormData({...formData, is_available: e.target.checked})}
+                                        />
+                                        <span className="slider round"></span>
+                                    </label>
+                                    <span className="toggle-label">
+                                        {formData.is_available ? 'Đang bán' : 'Ngừng bán'}
+                                    </span>
+                                </div>
                             </div>
 
                             <div className="form-buttons">
@@ -300,6 +351,7 @@ function AdminProducts() {
                             <th>Tên sản phẩm</th>
                             <th>Danh mục</th>
                             <th>Giá</th>
+                            <th>Trạng thái</th>
                             <th>Thao tác</th>
                         </tr>
                     </thead>
@@ -327,6 +379,11 @@ function AdminProducts() {
                                 <td>{product.name}</td>
                                 <td>{product.category_name}</td>
                                 <td>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}</td>
+                                <td>
+                                    <span className={`status-tag ${product.is_available ? 'active' : 'inactive'}`}>
+                                        {product.is_available ? 'Đang bán' : 'Ngừng bán'}
+                                    </span>
+                                </td>
                                 <td>
                                     <button className="edit-btn" onClick={() => handleEdit(product)}>
                                         <i className="fas fa-edit"></i>

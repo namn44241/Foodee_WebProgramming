@@ -10,7 +10,6 @@ const productController = {
                 SELECT p.*, c.name as category_name 
                 FROM products p 
                 LEFT JOIN categories c ON p.category_id = c.id
-                WHERE p.is_available = 1
                 ORDER BY p.created_at DESC
             `);
             
@@ -71,7 +70,7 @@ const productController = {
                 }
             });
         } catch (error) {
-            // Xử lý lỗi và xóa file nếu có
+            // Xử lý lỗi và xóa file nếu c��
             if (req.file) {
                 const filePath = path.join(__dirname, '../../public/uploads/products', req.file.filename);
                 if (fs.existsSync(filePath)) {
@@ -91,9 +90,10 @@ const productController = {
     updateProduct: async (req, res) => {
         try {
             const { id } = req.params;
-            const { name, price, description, category_id } = req.body;
-            let updateQuery = 'UPDATE products SET name = ?, price = ?, description = ?, category_id = ?';
-            let params = [name, price, description, category_id];
+            const { name, price, description, category_id, is_available } = req.body;
+            
+            let updateQuery = 'UPDATE products SET name = ?, price = ?, description = ?, category_id = ?, is_available = ?';
+            let params = [name, price, description, category_id, is_available === 'true' || is_available === true ? 1 : 0];
 
             // Nếu có upload ảnh mới
             if (req.file) {
@@ -128,14 +128,30 @@ const productController = {
         }
     },
 
-    // Xóa sản phẩm (soft delete)
+    // Xóa sản phẩm (hard delete)
     deleteProduct: async (req, res) => {
         try {
             const { id } = req.params;
-            await db.execute(
-                'UPDATE products SET is_available = 0 WHERE id = ?',
+            
+            // Lấy thông tin ảnh trước khi xóa
+            const [product] = await db.execute(
+                'SELECT image_name FROM products WHERE id = ?',
                 [id]
             );
+
+            // Xóa sản phẩm khỏi database
+            await db.execute(
+                'DELETE FROM products WHERE id = ?',
+                [id]
+            );
+
+            // Xóa file ảnh nếu có
+            if (product[0]?.image_name) {
+                const imagePath = path.join(__dirname, '../../public/uploads/products', product[0].image_name);
+                if (fs.existsSync(imagePath)) {
+                    fs.unlinkSync(imagePath);
+                }
+            }
 
             res.json({
                 success: true,
@@ -146,6 +162,30 @@ const productController = {
             res.status(500).json({
                 success: false,
                 message: 'Lỗi khi xóa sản phẩm'
+            });
+        }
+    },
+
+    // Thêm method mới để lấy sản phẩm cho user
+    getPublicProducts: async (req, res) => {
+        try {
+            const [rows] = await db.execute(`
+                SELECT p.*, c.name as category_name 
+                FROM products p 
+                LEFT JOIN categories c ON p.category_id = c.id
+                WHERE p.is_available = 1
+                ORDER BY p.created_at DESC
+            `);
+            
+            res.json({
+                success: true,
+                data: rows
+            });
+        } catch (error) {
+            console.error('Error getting products:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi lấy danh sách sản phẩm'
             });
         }
     }

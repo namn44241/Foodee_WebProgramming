@@ -16,6 +16,7 @@ import AdminLogin from './components/admin/auth/AdminLogin';
 import AdminLayout from './components/admin/layout/AdminLayout';
 import Dashboard from './components/admin/pages/dashboard/Dashboard';
 import AdminProducts from './components/admin/pages/products/AdminProducts.js';
+import AdminCategories from './components/admin/pages/categories/AdminCategories';
 
 
 // Protected Route Component
@@ -76,6 +77,7 @@ function App() {
             }>
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="products" element={<AdminProducts />} />
+                <Route path="categories" element={<AdminCategories />} /> 
             </Route>
 
       {/* Public Routes */}

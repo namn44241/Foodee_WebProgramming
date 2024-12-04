@@ -42,24 +42,13 @@ const tableRoutes = require('./src/routes/tableRoutes');
 const orderRoutes = require('./src/routes/orderRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes'); 
 
-// Routes with error handling
-const useRouteWithErrorHandling = (path, router) => {
-    app.use(path, async (req, res, next) => {  // Thêm async
-        try {
-            await router(req, res, next);  // Thêm await
-        } catch (error) {
-            next(error);
-        }
-    });
-};;
-
 // Apply routes
-useRouteWithErrorHandling('/api/auth', authRoutes);
-useRouteWithErrorHandling('/api/categories', categoryRoutes);
-useRouteWithErrorHandling('/api/products', productRoutes);
-useRouteWithErrorHandling('/api/tables', tableRoutes);
-useRouteWithErrorHandling('/api/orders', orderRoutes);
-useRouteWithErrorHandling('/api/dashboard', dashboardRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/tables', tableRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Global error handling
 app.use((err, req, res, next) => {

@@ -4,8 +4,11 @@ const productController = require('../controllers/productController');
 const { upload, processImage } = require('../middleware/upload');
 const { auth, checkRole } = require('../middleware/auth');
 
-// Lấy danh sách sản phẩm (public)
-router.get('/', productController.getProducts);
+// Route cho user (public) - chỉ lấy sản phẩm đang bán
+router.get('/public', productController.getPublicProducts);
+
+// Route cho admin - lấy tất cả sản phẩm
+router.get('/', auth, checkRole(['admin']), productController.getProducts);
 
 // Các routes yêu cầu đăng nhập và quyền admin
 router.use(auth);

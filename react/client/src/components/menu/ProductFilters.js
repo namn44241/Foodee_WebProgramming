@@ -1,27 +1,52 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 function ProductFilters({ currentFilter, onFilterChange }) {
-  const filters = [
-    { id: '*', name: 'All' },
-    { id: 'strawberry', name: 'Strawberry' },
-    { id: 'berry', name: 'Berry' },
-    { id: 'lemon', name: 'Lemon' },
-    { id: 'avocado', name: 'Avocado' },
-    { id: 'apple', name: 'Apple' }
-  ];
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        // Sử dụng API public
+        const response = await axios.get('http://localhost:5001/api/categories/public');
+        
+        if (response.data.success) {
+          const allCategories = [
+            { id: '*', name: 'Tất cả' },
+            ...response.data.data
+          ];
+          setCategories(allCategories);
+        } else {
+          throw new Error(response.data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        setError('Không thể tải danh mục sản phẩm');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  if (loading) return <div>Đang tải...</div>;
+  if (error) return <div className="text-danger">{error}</div>;
 
   return (
     <div className="row">
       <div className="col-md-12">
         <div className="product-filters">
           <ul>
-            {filters.map(filter => (
+            {categories.map(category => (
               <li
-                key={filter.id}
-                className={currentFilter === filter.id ? 'active' : ''}
-                onClick={() => onFilterChange(filter.id)}
+                key={category.id}
+                className={currentFilter === category.id.toString() ? 'active' : ''}
+                onClick={() => onFilterChange(category.id.toString())}
               >
-                {filter.name}
+                {category.name}
               </li>
             ))}
           </ul>

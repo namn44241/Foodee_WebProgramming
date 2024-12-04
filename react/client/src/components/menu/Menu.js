@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import ProductList from './ProductList';
 import ProductFilters from './ProductFilters';
-import Pagination from './Pagination';
 
 function Menu() {
   const [currentFilter, setCurrentFilter] = useState('*');
-  const [currentPage, setCurrentPage] = useState(1);
 
   return (
     <>
@@ -31,10 +29,7 @@ function Menu() {
             onFilterChange={setCurrentFilter} 
           />
           <ProductList filter={currentFilter} />
-          <Pagination 
-            currentPage={currentPage}
-            onPageChange={setCurrentPage}
-          />
+
         </div>
       </div>
     </>

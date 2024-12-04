@@ -3,7 +3,10 @@ const router = express.Router();
 const categoryController = require('../controllers/categoryController');
 const { auth } = require('../middleware/auth');
 
-// Route lấy danh sách danh mục cho admin
+// Public route - không cần auth
+router.get('/public', categoryController.getActiveCategories);
+
+// Routes yêu cầu auth
 router.get('/', auth, categoryController.getCategories);
 
 // Route lấy danh mục đang hoạt động cho form thêm/sửa sản phẩm

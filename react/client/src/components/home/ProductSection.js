@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import ProductFilters from '../menu/ProductFilters';
 
 function ProductSection() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentFilter, setCurrentFilter] = useState('*');
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -27,6 +29,15 @@ function ProductSection() {
     fetchProducts();
   }, []);
 
+  const handleFilterChange = (filterId) => {
+    setCurrentFilter(filterId);
+  };
+
+  // Lọc sản phẩm theo danh mục
+  const filteredProducts = currentFilter === '*' 
+    ? products 
+    : products.filter(product => product.category_id.toString() === currentFilter);
+
   if (loading) return <div className="text-center">Đang tải...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
 
@@ -43,9 +54,15 @@ function ProductSection() {
           </div>
         </div>
 
+        {/* Product Filters */}
+        <ProductFilters 
+          currentFilter={currentFilter} 
+          onFilterChange={handleFilterChange} 
+        />
+
         {/* Products Grid */}
         <div className="row">
-          {products.map(product => (
+          {filteredProducts.map(product => (
             <div key={product.id} className="col-lg-4 col-md-6 text-center">
               <div className="single-product-item">
                 <div className="product-image">

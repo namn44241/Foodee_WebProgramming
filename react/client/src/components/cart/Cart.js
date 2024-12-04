@@ -1,8 +1,8 @@
 import React from 'react';
-import BreadcrumbSection from '../about/BreadcrumbSection';  // Sửa đường dẫn
+import BreadcrumbSection from '../about/CartSection';  
 import CartTable from './CartTable';
 import CartTotal from './CartTotal';
-import LogoCarousel from '../home/LogoCarousel';  // Sửa đường dẫn
+import LogoCarousel from '../home/LogoCarousel'; 
 
 function Cart() {
   return (

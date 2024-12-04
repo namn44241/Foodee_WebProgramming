@@ -1,5 +1,5 @@
 import React from 'react';
-import BreadcrumbSection from '../about/BreadcrumbSection';
+import BreadcrumbSection from '../about/SingerPageSection';
 import ProductDetail from './ProductDetail';
 import RelatedProducts from './RelatedProducts';
 import LogoCarousel from '../home/LogoCarousel';

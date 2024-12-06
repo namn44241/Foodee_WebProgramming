@@ -6,6 +6,7 @@ import './AdminProducts.css';
 function AdminProducts() {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [productOptions, setProductOptions] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
     const [formData, setFormData] = useState({
@@ -62,7 +63,7 @@ function AdminProducts() {
         fetchProducts();
     }, []);
 
-    const handleEdit = (product) => {
+    const handleEdit = async (product) => {
         setFormData({
             id: product.id,
             name: product.name,
@@ -77,6 +78,20 @@ function AdminProducts() {
             setImagePreview(`http://localhost:5001/uploads/products/${product.image_name}`);
         } else {
             setImagePreview(null);
+        }
+    
+        // Load product options
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`http://localhost:5001/api/product-options/${product.id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.data.success) {
+                setProductOptions(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error loading product options:', error);
+            Swal.fire('Lỗi', 'Không thể tải tùy chọn sản phẩm', 'error');
         }
         
         setShowForm(true);
@@ -129,13 +144,13 @@ function AdminProducts() {
             const token = localStorage.getItem('token');
             const formDataToSend = new FormData();
             
-            // Thêm các trường dữ liệu vào FormData
             Object.keys(formData).forEach(key => {
                 if (key !== 'image' || formData[key] !== null) {
                     formDataToSend.append(key, formData[key]);
                 }
             });
-
+    
+            let productId;
             if (formData.id) {
                 // Cập nhật sản phẩm
                 await axios.put(
@@ -148,10 +163,10 @@ function AdminProducts() {
                         }
                     }
                 );
-                Swal.fire('Thành công', 'Cập nhật sản phẩm thành công', 'success');
+                productId = formData.id;
             } else {
                 // Thêm sản phẩm mới
-                await axios.post(
+                const response = await axios.post(
                     'http://localhost:5001/api/products', 
                     formDataToSend,
                     {
@@ -161,10 +176,29 @@ function AdminProducts() {
                         }
                     }
                 );
-                Swal.fire('Thành công', 'Thêm sản phẩm thành công', 'success');
+                productId = response.data.data.id;
             }
-
+    
+            // Lưu các tùy chọn
+            await axios.delete(`http://localhost:5001/api/product-options/${productId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+    
+            for (const option of productOptions) {
+                if (option.name && option.price_adjustment) {
+                    await axios.post('http://localhost:5001/api/product-options', {
+                        product_id: productId,
+                        name: option.name,
+                        price_adjustment: option.price_adjustment
+                    }, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                }
+            }
+    
+            Swal.fire('Thành công', 'Lưu sản phẩm thành công', 'success');
             setShowForm(false);
+            
             // Refresh products list
             const productsResponse = await axios.get('http://localhost:5001/api/products', {
                 headers: { Authorization: `Bearer ${token}` }
@@ -204,7 +238,21 @@ function AdminProducts() {
                 image: null,
                 is_available: true
             });
-        }, 500); // Thời gian bằng với thời gian animation
+        }, 500); 
+    };
+    const handleAddOption = () => {
+        setProductOptions([...productOptions, { name: '', price_adjustment: 0 }]);
+    };
+    
+    const handleOptionChange = (index, field, value) => {
+        const newOptions = [...productOptions];
+        newOptions[index][field] = value;
+        setProductOptions(newOptions);
+    };
+    
+    const handleRemoveOption = (index) => {
+        const newOptions = productOptions.filter((_, i) => i !== index);
+        setProductOptions(newOptions);
     };
 
     useEffect(() => {
@@ -324,7 +372,41 @@ function AdminProducts() {
                                     </span>
                                 </div>
                             </div>
-
+                            <div className="form-group">
+                                <label>Tùy chọn sản phẩm</label>
+                                <div className="options-container">
+                                    {productOptions.map((option, index) => (
+                                        <div key={index} className="option-item">
+                                            <input
+                                                type="text"
+                                                value={option.name}
+                                                placeholder="Tên tùy chọn"
+                                                onChange={(e) => handleOptionChange(index, 'name', e.target.value)}
+                                            />
+                                            <input
+                                                type="number"
+                                                value={option.price_adjustment}
+                                                placeholder="Giá tùy chọn"
+                                                onChange={(e) => handleOptionChange(index, 'price_adjustment', e.target.value)}
+                                            />
+                                            <button 
+                                                type="button" 
+                                                onClick={() => handleRemoveOption(index)}
+                                                className="remove-option-btn"
+                                            >
+                                                <i className="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <button 
+                                        type="button" 
+                                        onClick={handleAddOption}
+                                        className="add-option-btn"
+                                    >
+                                        <i className="fas fa-plus"></i> Thêm tùy chọn
+                                    </button>
+                                </div>
+                            </div>
                             <div className="form-buttons">
                                 <button type="submit" className="submit-btn">
                                     <i className="fas fa-save"></i> Lưu

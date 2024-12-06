@@ -41,6 +41,7 @@ const productRoutes = require('./src/routes/productRoutes');
 const tableRoutes = require('./src/routes/tableRoutes');
 const orderRoutes = require('./src/routes/orderRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes'); 
+const productOptionRoutes = require('./src/routes/productOptionRoutes');
 
 // Apply routes
 app.use('/api/auth', authRoutes);
@@ -49,6 +50,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/tables', tableRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/product-options', productOptionRoutes);
 
 // Global error handling
 app.use((err, req, res, next) => {

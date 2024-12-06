@@ -60,6 +60,24 @@ CREATE TABLE orders (
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
+-- Tách thông tin options ra riêng
+CREATE TABLE options (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100),
+    price_adjustment DECIMAL(10,2)
+);
+
+-- Bảng liên kết chỉ lưu mối quan hệ
+CREATE TABLE product_options (
+    product_id INT,
+    option_id INT,
+    PRIMARY KEY (product_id, option_id),
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (option_id) REFERENCES options(id)
+);
+
+
+
 -- Initial Data
 INSERT INTO users (username, password, role) 
 VALUES ('admin', SHA2('1', 256), 'admin');

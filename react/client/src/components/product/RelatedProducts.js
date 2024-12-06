@@ -60,7 +60,7 @@ function RelatedProducts() {
                 </div>
                 <h3>{product.name}</h3>
                 <p className="product-price">
-                  <span>Per Kg</span> {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
+                  <span> </span> {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
                 </p>
                 <Link to={`/product/${product.id}`} className="cart-btn">
                   <i className="fas fa-shopping-cart"></i> Xem chi tiết

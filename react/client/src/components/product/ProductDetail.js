@@ -74,7 +74,7 @@ function ProductDetail() {
         <div className="single-product-content">
           <h3>{product.name}</h3>
           <p className="single-product-pricing">
-            <span>Per Kg</span> {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
+            <span> </span> {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
           </p>
           <p>{product.description}</p>
           <div className="single-product-form">

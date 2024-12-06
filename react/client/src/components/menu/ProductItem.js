@@ -12,7 +12,7 @@ function ProductItem({ product }) {
         </div>
         <h3>{product.name}</h3>
         <p className="product-price">
-          <span>Per Kg</span> {product.price}$
+          <span> </span> {product.price}$
         </p>
         <Link to="/cart" className="cart-btn">
           <i className="fas fa-shopping-cart"></i> Thêm vào Giỏ

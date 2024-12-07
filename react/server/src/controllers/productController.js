@@ -1,10 +1,10 @@
 const db = require('../config/database');
+const fs = require('fs').promises;
 const path = require('path');
-const fs = require('fs');
 
 const productController = {
-    // Lấy danh sách sản phẩm
-    getProducts: async (req, res) => {
+    // Lấy sản phẩm cho trang admin
+    getAdminProducts: async (req, res) => {
         try {
             const [rows] = await db.execute(`
                 SELECT p.*, c.name as category_name 
@@ -26,148 +26,8 @@ const productController = {
         }
     },
 
-    // Thêm sản phẩm mới
-    addProduct: async (req, res) => {
-        try {
-            const { name, price, description, category_id } = req.body;
-            let image_name = null;
-
-            // Kiểm tra file upload
-            if (!req.file) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Vui lòng chọn ảnh sản phẩm'
-                });
-            }
-
-            image_name = req.file.filename;
-
-            const [result] = await db.execute(
-                'INSERT INTO products (name, price, description, category_id, image_name) VALUES (?, ?, ?, ?, ?)',
-                [name, price, description, category_id, image_name]
-            );
-
-            // Kiểm tra kết quả insert
-            if (result.affectedRows === 0) {
-                // Xóa file nếu insert thất bại
-                const filePath = path.join(__dirname, '../../public/uploads/products', image_name);
-                if (fs.existsSync(filePath)) {
-                    fs.unlinkSync(filePath);
-                }
-                throw new Error('Không thể thêm sản phẩm vào database');
-            }
-
-            res.json({
-                success: true,
-                message: 'Thêm sản phẩm thành công',
-                data: {
-                    id: result.insertId,
-                    name,
-                    price,
-                    description,
-                    category_id,
-                    image_name
-                }
-            });
-        } catch (error) {
-            // Xử lý lỗi và xóa file nếu c
-            if (req.file) {
-                const filePath = path.join(__dirname, '../../public/uploads/products', req.file.filename);
-                if (fs.existsSync(filePath)) {
-                    fs.unlinkSync(filePath);
-                }
-            }
-
-            console.error('Error adding product:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Lỗi khi thêm sản phẩm: ' + error.message
-            });
-        }
-    },
-
-    // Cập nhật sản phẩm
-    updateProduct: async (req, res) => {
-        try {
-            const { id } = req.params;
-            const { name, price, description, category_id, is_available } = req.body;
-            
-            let updateQuery = 'UPDATE products SET name = ?, price = ?, description = ?, category_id = ?, is_available = ?';
-            let params = [name, price, description, category_id, is_available === 'true' || is_available === true ? 1 : 0];
-
-            // Nếu có upload ảnh mới
-            if (req.file) {
-                // Xóa ảnh cũ nếu có
-                const [oldProduct] = await db.execute('SELECT image_name FROM products WHERE id = ?', [id]);
-                if (oldProduct[0]?.image_name) {
-                    const oldImagePath = path.join(__dirname, '../../public/uploads/products', oldProduct[0].image_name);
-                    if (fs.existsSync(oldImagePath)) {
-                        fs.unlinkSync(oldImagePath);
-                    }
-                }
-
-                updateQuery += ', image_name = ?';
-                params.push(req.file.filename);
-            }
-
-            updateQuery += ' WHERE id = ?';
-            params.push(id);
-
-            await db.execute(updateQuery, params);
-
-            res.json({
-                success: true,
-                message: 'Cập nhật sản phẩm thành công'
-            });
-        } catch (error) {
-            console.error('Error updating product:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Lỗi khi cập nhật sản phẩm'
-            });
-        }
-    },
-
-    // Xóa sản phẩm (hard delete)
-    deleteProduct: async (req, res) => {
-        try {
-            const { id } = req.params;
-            
-            // Lấy thông tin ảnh trước khi xóa
-            const [product] = await db.execute(
-                'SELECT image_name FROM products WHERE id = ?',
-                [id]
-            );
-
-            // Xóa sản phẩm khỏi database
-            await db.execute(
-                'DELETE FROM products WHERE id = ?',
-                [id]
-            );
-
-            // Xóa file ảnh nếu có
-            if (product[0]?.image_name) {
-                const imagePath = path.join(__dirname, '../../public/uploads/products', product[0].image_name);
-                if (fs.existsSync(imagePath)) {
-                    fs.unlinkSync(imagePath);
-                }
-            }
-
-            res.json({
-                success: true,
-                message: 'Xóa sản phẩm thành công'
-            });
-        } catch (error) {
-            console.error('Error deleting product:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Lỗi khi xóa sản phẩm'
-            });
-        }
-    },
-
-    // Thêm method mới để lấy sản phẩm cho user
-    getPublicProducts: async (req, res) => {
+    // Lấy sản phẩm cho public
+    getProducts: async (req, res) => {
         try {
             const [rows] = await db.execute(`
                 SELECT p.*, c.name as category_name 
@@ -182,7 +42,7 @@ const productController = {
                 data: rows
             });
         } catch (error) {
-            console.error('Error getting products:', error);
+            console.error('Error getting public products:', error);
             res.status(500).json({
                 success: false,
                 message: 'Lỗi khi lấy danh sách sản phẩm'
@@ -190,15 +50,178 @@ const productController = {
         }
     },
 
+    // Thêm sản phẩm mới
+    addProduct: async (req, res) => {
+        try {
+            const { name, price, description, category_id } = req.body;
+            const selectedOptions = req.body.selectedOptions ? JSON.parse(req.body.selectedOptions) : [];
+            let image_name = null;
+
+            if (req.file) {
+                image_name = req.file.filename;
+            }
+
+            const connection = await db.getConnection();
+            await connection.beginTransaction();
+
+            try {
+                // Thêm sản phẩm
+                const [result] = await connection.execute(
+                    'INSERT INTO products (name, price, description, category_id, image_name) VALUES (?, ?, ?, ?, ?)',
+                    [name, price, description, category_id, image_name]
+                );
+
+                const productId = result.insertId;
+
+                // Thêm options cho sản phẩm nếu có
+                if (selectedOptions.length > 0) {
+                    const optionValues = selectedOptions.map(optionId => [productId, optionId]);
+                    await connection.query(
+                        'INSERT INTO product_options (product_id, option_id) VALUES ?',
+                        [optionValues]
+                    );
+                }
+
+                await connection.commit();
+
+                res.json({
+                    success: true,
+                    message: 'Thêm sản phẩm thành công',
+                    data: {
+                        id: productId,
+                        name,
+                        price,
+                        description,
+                        category_id,
+                        image_name
+                    }
+                });
+            } catch (error) {
+                await connection.rollback();
+                throw error;
+            } finally {
+                connection.release();
+            }
+        } catch (error) {
+            console.error('Error adding product:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi thêm sản phẩm'
+            });
+        }
+    },
+
+    // Cập nhật sản phẩm
+    updateProduct: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { name, price, description, category_id, is_available } = req.body;
+            let selectedOptions = [];
+            
+            try {
+                selectedOptions = JSON.parse(req.body.selectedOptions || '[]');
+            } catch (error) {
+                console.error('Error parsing selectedOptions:', error);
+                selectedOptions = [];
+            }
+
+            const connection = await db.getConnection();
+            await connection.beginTransaction();
+
+            try {
+                // Cập nhật thông tin sản phẩm
+                let updateQuery = 'UPDATE products SET name = ?, price = ?, description = ?, category_id = ?, is_available = ?';
+                let params = [name, price, description, category_id, is_available];
+
+                if (req.file) {
+                    updateQuery += ', image_name = ?';
+                    params.push(req.file.filename);
+                }
+
+                updateQuery += ' WHERE id = ?';
+                params.push(id);
+
+                await connection.execute(updateQuery, params);
+
+                // Xóa tất cả options hiện tại
+                await connection.execute('DELETE FROM product_options WHERE product_id = ?', [id]);
+
+                // Thêm options mới nếu có
+                if (selectedOptions.length > 0) {
+                    const optionValues = selectedOptions.map(optionId => [id, optionId]);
+                    await connection.query(
+                        'INSERT INTO product_options (product_id, option_id) VALUES ?',
+                        [optionValues]
+                    );
+                }
+
+                await connection.commit();
+
+                res.json({
+                    success: true,
+                    message: 'Cập nhật sản phẩm thành công'
+                });
+            } catch (error) {
+                await connection.rollback();
+                throw error;
+            } finally {
+                connection.release();
+            }
+        } catch (error) {
+            console.error('Error updating product:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi cập nhật sản phẩm'
+            });
+        }
+    },
+
+    // Xóa sản phẩm
+    deleteProduct: async (req, res) => {
+        try {
+            const { id } = req.params;
+
+            // Bắt đầu transaction
+            const connection = await db.getConnection();
+            await connection.beginTransaction();
+
+            try {
+                // Xóa các liên kết options trước
+                await connection.execute('DELETE FROM product_options WHERE product_id = ?', [id]);
+
+                // Sau đó xóa sản phẩm
+                await connection.execute('DELETE FROM products WHERE id = ?', [id]);
+
+                await connection.commit();
+
+                res.json({
+                    success: true,
+                    message: 'Xóa sản phẩm thành công'
+                });
+            } catch (error) {
+                await connection.rollback();
+                throw error;
+            } finally {
+                connection.release();
+            }
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi xóa sản phẩm'
+            });
+        }
+    },
+
     // Lấy chi tiết sản phẩm
-    getPublicProductById: async (req, res) => {
+    getProductById: async (req, res) => {
         try {
             const { id } = req.params;
             const [rows] = await db.execute(`
                 SELECT p.*, c.name as category_name 
                 FROM products p 
                 LEFT JOIN categories c ON p.category_id = c.id
-                WHERE p.id = ? AND p.is_available = 1
+                WHERE p.id = ?
             `, [id]);
 
             if (rows.length === 0) {
@@ -208,9 +231,22 @@ const productController = {
                 });
             }
 
+            // Lấy options của sản phẩm
+            const [options] = await db.execute(`
+                SELECT o.* 
+                FROM options o
+                JOIN product_options po ON o.id = po.option_id
+                WHERE po.product_id = ?
+            `, [id]);
+
+            const product = {
+                ...rows[0],
+                options
+            };
+
             res.json({
                 success: true,
-                data: rows[0]
+                data: product
             });
         } catch (error) {
             console.error('Error getting product:', error);
@@ -221,7 +257,7 @@ const productController = {
         }
     },
 
-    // Lấy sản phẩm liên quan (cùng danh mục)
+    // Lấy sản phẩm liên quan
     getRelatedProducts: async (req, res) => {
         try {
             const { id } = req.params;

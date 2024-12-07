@@ -5,12 +5,12 @@ const { upload, processImage } = require('../middleware/upload');
 const { auth, checkRole } = require('../middleware/auth');
 
 // Public routes - không cần auth
-router.get('/public', productController.getPublicProducts);
-router.get('/public/:id', productController.getPublicProductById);
+router.get('/public', productController.getProducts);
+router.get('/public/:id', productController.getProductById);
 router.get('/related/:id', productController.getRelatedProducts);
 
 // Protected routes - yêu cầu auth và quyền admin
-router.get('/', auth, checkRole(['admin']), productController.getProducts);
+router.get('/', auth, checkRole(['admin']), productController.getAdminProducts);
 
 // Middleware cho các routes admin
 router.use(auth);

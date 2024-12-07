@@ -24,7 +24,28 @@ function AdminProducts() {
     const [showOptionModal, setShowOptionModal] = useState(false);
     const [newOption, setNewOption] = useState({ name: '', price_adjustment: 0 });
 
-    // Fetch products và categories
+    // Định nghĩa fetchProducts ở ngoài useEffect
+    const fetchProducts = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const productsRes = await axios.get('http://localhost:5001/api/products', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            console.log('Products Response:', productsRes.data);
+
+            if (productsRes.data.success) {
+                setProducts(productsRes.data.data);
+            } else {
+                throw new Error(productsRes.data.message);
+            }
+        } catch (error) {
+            console.error('Error fetching products:', error);
+            Swal.fire('Lỗi', 'Không thể tải sản phẩm', 'error');
+        }
+    };
+
+    // Fetch products và categories khi component mount
     useEffect(() => {
         const fetchCategories = async () => {
             try {
@@ -41,26 +62,6 @@ function AdminProducts() {
             } catch (error) {
                 console.error('Error fetching categories:', error);
                 Swal.fire('Lỗi', 'Không thể tải danh mục', 'error');
-            }
-        };
-
-        const fetchProducts = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                const productsRes = await axios.get('http://localhost:5001/api/products', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                
-                console.log('Products Response:', productsRes.data); // Kiểm tra response
-
-                if (productsRes.data.success) {
-                    setProducts(productsRes.data.data);
-                } else {
-                    throw new Error(productsRes.data.message);
-                }
-            } catch (error) {
-                console.error('Error fetching products:', error);
-                Swal.fire('Lỗi', 'Không thể tải sản phẩm', 'error');
             }
         };
 
@@ -106,77 +107,77 @@ function AdminProducts() {
     }, [formData.id]);
 
     const handleEdit = async (product) => {
-        setFormData({
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            description: product.description,
-            category_id: product.category_id,
-            image: null,
-            is_available: product.is_available
-        });
-        
-        if (product.image_name) {
-            setImagePreview(`http://localhost:5001/uploads/products/${product.image_name}`);
-        } else {
-            setImagePreview(null);
-        }
-    
-        // Load product options
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get(`http://localhost:5001/api/product-options/${product.id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+            
+            // Set thông tin cơ bản của sản phẩm
+            setFormData({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                description: product.description,
+                category_id: product.category_id,
+                image: null,
+                is_available: product.is_available
             });
-            if (response.data.success) {
-                setProductOptions(response.data.data);
+            
+            if (product.image_name) {
+                setImagePreview(`http://localhost:5001/uploads/products/${product.image_name}`);
+            } else {
+                setImagePreview(null);
             }
+
+            // Fetch topping đã chọn của sản phẩm
+            const response = await axios.get(
+                `http://localhost:5001/api/product-options/product/${product.id}`,
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            if (response.data.success) {
+                // Lọc ra các topping đã được chọn (is_selected = 1)
+                const selectedTops = response.data.data.filter(option => option.is_selected === 1);
+                setSelectedToppings(selectedTops);
+            }
+
+            setShowForm(true);
         } catch (error) {
-            console.error('Error loading product options:', error);
-            Swal.fire('Lỗi', 'Không thể tải tùy chọn sản phẩm', 'error');
+            console.error('Error in handleEdit:', error);
+            Swal.fire('Lỗi', 'Không thể tải thông tin sản phẩm', 'error');
         }
-        
-        setShowForm(true);
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async (productId) => {
         try {
             const result = await Swal.fire({
-                title: 'Xác nhận xóa?',
-                text: "Bạn không thể hoàn tác sau khi xóa!",
+                title: 'Xác nhận xóa',
+                text: 'Bạn có chắc chắn muốn xóa sản phẩm này?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
                 confirmButtonText: 'Xóa',
                 cancelButtonText: 'Hủy'
             });
 
             if (result.isConfirmed) {
                 const token = localStorage.getItem('token');
-                await axios.delete(`http://localhost:5001/api/products/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-
-                // Refresh danh sách sản phẩm
-                const response = await axios.get('http://localhost:5001/api/products', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setProducts(response.data.data);
-
-                Swal.fire(
-                    'Đã xóa!',
-                    'Sản phẩm đã được xóa thành công.',
-                    'success'
+                const response = await axios.delete(
+                    `http://localhost:5001/api/products/${productId}`,
+                    {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
                 );
+
+                if (response.data.success) {
+                    Swal.fire('Đã xóa!', 'Sản phẩm đã được xóa thành công.', 'success');
+                    fetchProducts(); // Refresh danh sách sau khi xóa
+                }
             }
         } catch (error) {
             console.error('Error deleting product:', error);
-            Swal.fire(
-                'Lỗi!',
-                'Không thể xóa sản phẩm.',
-                'error'
-            );
+            Swal.fire('Lỗi', 'Không thể xóa sản phẩm', 'error');
         }
     };
 
@@ -186,66 +187,51 @@ function AdminProducts() {
             const token = localStorage.getItem('token');
             const formDataToSend = new FormData();
             
-            Object.keys(formData).forEach(key => {
-                if (key !== 'image' || formData[key] !== null) {
-                    formDataToSend.append(key, formData[key]);
-                }
-            });
-    
-            let productId;
-            if (formData.id) {
-                // Cập nhật sản phẩm
-                await axios.put(
-                    `http://localhost:5001/api/products/${formData.id}`, 
-                    formDataToSend,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'multipart/form-data'
-                        }
-                    }
-                );
-                productId = formData.id;
-            } else {
-                // Thêm sản phẩm mới
-                const response = await axios.post(
-                    'http://localhost:5001/api/products', 
-                    formDataToSend,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'multipart/form-data'
-                        }
-                    }
-                );
-                productId = response.data.data.id;
-            }
-    
-            // Lưu các tùy chọn
-            await axios.delete(`http://localhost:5001/api/product-options/${productId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-    
-            for (const option of productOptions) {
-                if (option.name && option.price_adjustment) {
-                    await axios.post('http://localhost:5001/api/product-options', {
-                        product_id: productId,
-                        name: option.name,
-                        price_adjustment: option.price_adjustment
-                    }, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                }
-            }
-    
-            Swal.fire('Thành công', 'Lưu sản phẩm thành công', 'success');
-            setShowForm(false);
+            // Thêm các trường thông tin cơ bản
+            formDataToSend.append('name', formData.name);
+            formDataToSend.append('price', formData.price);
+            formDataToSend.append('description', formData.description);
+            formDataToSend.append('category_id', formData.category_id);
+            formDataToSend.append('is_available', formData.is_available);
             
-            // Refresh products list
-            const productsResponse = await axios.get('http://localhost:5001/api/products', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setProducts(productsResponse.data.data);
+            if (formData.image) {
+                formDataToSend.append('image', formData.image);
+            }
+            
+            // Chỉ gửi mảng ID của các options
+            const optionIds = selectedToppings.map(option => option.id);
+            formDataToSend.append('selectedOptions', JSON.stringify(optionIds));
+
+            let response;
+            if (formData.id) {
+                response = await axios.put(
+                    `http://localhost:5001/api/products/${formData.id}`,
+                    formDataToSend,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    }
+                );
+            } else {
+                response = await axios.post(
+                    'http://localhost:5001/api/products',
+                    formDataToSend,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    }
+                );
+            }
+
+            if (response.data.success) {
+                Swal.fire('Thành công', response.data.message, 'success');
+                fetchProducts();
+                handleCloseForm();
+            }
         } catch (error) {
             console.error('Error submitting product:', error);
             Swal.fire('Lỗi', 'Không thể lưu sản phẩm', 'error');
@@ -265,13 +251,10 @@ function AdminProducts() {
     // Hàm xử lý đóng form với animation
     const handleCloseForm = () => {
         setIsClosing(true);
-        if (imagePreview) {
-            URL.revokeObjectURL(imagePreview);
-            setImagePreview(null);
-        }
         setTimeout(() => {
             setShowForm(false);
             setIsClosing(false);
+            // Reset tất cả form data
             setFormData({
                 name: '',
                 price: '',
@@ -280,7 +263,10 @@ function AdminProducts() {
                 image: null,
                 is_available: true
             });
-        }, 500); 
+            setImagePreview(null);
+            // Reset selected toppings
+            setSelectedToppings([]);
+        }, 300);
     };
     const handleAddOption = () => {
         setProductOptions([...productOptions, { name: '', price_adjustment: 0 }]);
@@ -320,10 +306,13 @@ function AdminProducts() {
         try {
             const token = localStorage.getItem('token');
             const response = await axios.post(
-                'http://localhost:5001/api/product-options/create',
+                'http://localhost:5001/api/product-options',
                 newOption,
                 {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: { 
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 }
             );
 
@@ -341,15 +330,44 @@ function AdminProducts() {
         }
     };
 
+    const handleShowAddForm = () => {
+        // Reset form data khi thêm mới
+        setFormData({
+            name: '',
+            price: '',
+            description: '',
+            category_id: '',
+            image: null,
+            is_available: true
+        });
+        setImagePreview(null);
+        setSelectedToppings([]); // Reset selected toppings
+        setShowForm(true);
+    };
+
     return (
         <div className="admin-products">
             <div className="products-header">
                 <h2>Quản lý sản phẩm</h2>
                 <button 
-                    onClick={() => showForm ? handleCloseForm() : setShowForm(true)} 
                     className="add-product-btn"
+                    onClick={() => {
+                        if (showForm) {
+                            handleCloseForm();
+                        } else {
+                            handleShowAddForm();
+                        }
+                    }}
                 >
-                    <i className="fas fa-plus"></i> {showForm ? 'Ẩn form' : 'Thêm sản phẩm'}
+                    {showForm ? (
+                        <>
+                            <i className="fas fa-minus"></i> Ẩn form
+                        </>
+                    ) : (
+                        <>
+                            <i className="fas fa-plus"></i> Thêm sản phẩm
+                        </>
+                    )}
                 </button>
             </div>
 
@@ -415,7 +433,7 @@ function AdminProducts() {
                                             type="file"
                                             onChange={handleImageChange}
                                             accept="image/*"
-                                            required={!formData.id && !imagePreview} // Chỉ bắt buộc khi thêm mới và chưa có ảnh
+                                            required={!formData.id && !imagePreview} // Chỉ bắt buộc khi thêm mới và ch��a có ảnh
                                         />
                                         {formData.id && !formData.image && (
                                             <small className="text-muted">

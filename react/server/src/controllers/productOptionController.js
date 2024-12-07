@@ -23,10 +23,10 @@ const productOptionController = {
         try {
             const { product_id } = req.params;
             const [rows] = await db.execute(`
-                SELECT o.* 
+                SELECT o.*, 
+                       CASE WHEN po.product_id IS NOT NULL THEN 1 ELSE 0 END as is_selected
                 FROM options o
-                JOIN product_options po ON o.id = po.option_id
-                WHERE po.product_id = ?
+                LEFT JOIN product_options po ON o.id = po.option_id AND po.product_id = ?
                 ORDER BY o.name
             `, [product_id]);
             
@@ -126,6 +126,35 @@ const productOptionController = {
             res.status(500).json({
                 success: false,
                 message: 'Lỗi khi xóa tùy chọn'
+            });
+        }
+    },
+
+    // Thêm method mới để quản lý options của sản phẩm
+    updateProductOptions: async (req, res) => {
+        try {
+            const { product_id, option_ids } = req.body;
+            
+            // Xóa tất cả options hiện tại của sản phẩm
+            await db.execute('DELETE FROM product_options WHERE product_id = ?', [product_id]);
+            
+            // Thêm các options mới
+            for (const option_id of option_ids) {
+                await db.execute(
+                    'INSERT INTO product_options (product_id, option_id) VALUES (?, ?)',
+                    [product_id, option_id]
+                );
+            }
+            
+            res.json({
+                success: true,
+                message: 'Cập nhật tùy chọn thành công'
+            });
+        } catch (error) {
+            console.error('Error updating product options:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi cập nhật tùy chọn'
             });
         }
     }

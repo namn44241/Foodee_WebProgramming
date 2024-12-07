@@ -18,6 +18,11 @@ function AdminProducts() {
         is_available: true
     });
     const [imagePreview, setImagePreview] = useState(null);
+    const [allOptions, setAllOptions] = useState([]);
+    const [selectedOptions, setSelectedOptions] = useState([]);
+    const [selectedToppings, setSelectedToppings] = useState([]);
+    const [showOptionModal, setShowOptionModal] = useState(false);
+    const [newOption, setNewOption] = useState({ name: '', price_adjustment: 0 });
 
     // Fetch products và categories
     useEffect(() => {
@@ -62,6 +67,43 @@ function AdminProducts() {
         fetchCategories();
         fetchProducts();
     }, []);
+
+    useEffect(() => {
+        const fetchAllOptions = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await axios.get('http://localhost:5001/api/product-options/all', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (response.data.success) {
+                    setAllOptions(response.data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching options:', error);
+            }
+        };
+        fetchAllOptions();
+    }, []);
+
+    useEffect(() => {
+        const fetchProductToppings = async (productId) => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await axios.get(`http://localhost:5001/api/product-options/${productId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (response.data.success) {
+                    setSelectedToppings(response.data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching product toppings:', error);
+            }
+        };
+
+        if (formData.id) {
+            fetchProductToppings(formData.id);
+        }
+    }, [formData.id]);
 
     const handleEdit = async (product) => {
         setFormData({
@@ -255,6 +297,17 @@ function AdminProducts() {
         setProductOptions(newOptions);
     };
 
+    const handleOptionSelect = (optionId) => {
+        const option = allOptions.find(opt => opt.id === optionId);
+        if (!selectedOptions.find(opt => opt.id === optionId)) {
+            setSelectedOptions([...selectedOptions, option]);
+        }
+    };
+
+    const handleRemoveSelectedOption = (optionId) => {
+        setSelectedOptions(selectedOptions.filter(opt => opt.id !== optionId));
+    };
+
     useEffect(() => {
         return () => {
             if (imagePreview) {
@@ -262,6 +315,31 @@ function AdminProducts() {
             }
         };
     }, [imagePreview]);
+
+    const handleAddNewOption = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post(
+                'http://localhost:5001/api/product-options/create',
+                newOption,
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            if (response.data.success) {
+                // Cập nhật danh sách options
+                setAllOptions([...allOptions, response.data.data]);
+                // Reset form và đóng modal
+                setNewOption({ name: '', price_adjustment: 0 });
+                setShowOptionModal(false);
+                Swal.fire('Thành công', 'Thêm tùy chọn mới thành công', 'success');
+            }
+        } catch (error) {
+            console.error('Error adding new option:', error);
+            Swal.fire('Lỗi', 'Không thể thêm tùy chọn mới', 'error');
+        }
+    };
 
     return (
         <div className="admin-products">
@@ -375,36 +453,62 @@ function AdminProducts() {
                             <div className="form-group">
                                 <label>Tùy chọn sản phẩm</label>
                                 <div className="options-container">
-                                    {productOptions.map((option, index) => (
-                                        <div key={index} className="option-item">
-                                            <input
-                                                type="text"
-                                                value={option.name}
-                                                placeholder="Tên tùy chọn"
-                                                onChange={(e) => handleOptionChange(index, 'name', e.target.value)}
-                                            />
-                                            <input
-                                                type="number"
-                                                value={option.price_adjustment}
-                                                placeholder="Giá tùy chọn"
-                                                onChange={(e) => handleOptionChange(index, 'price_adjustment', e.target.value)}
-                                            />
-                                            <button 
-                                                type="button" 
-                                                onClick={() => handleRemoveOption(index)}
-                                                className="remove-option-btn"
-                                            >
-                                                <i className="fas fa-times"></i>
-                                            </button>
+                                    <div className="options-header">
+                                        <h4>Toppings và Size có sẵn</h4>
+                                        <button 
+                                            type="button" 
+                                            className="add-option-btn"
+                                            onClick={() => setShowOptionModal(true)}
+                                        >
+                                            <i className="fas fa-plus"></i> Thêm tùy chọn mới
+                                        </button>
+                                    </div>
+
+                                    <div className="options-grid">
+                                        {allOptions.map(option => (
+                                            <div key={option.id} className="option-card">
+                                                <div className="option-card-content">
+                                                    <span className="option-name">{option.name}</span>
+                                                    <span className="option-price">
+                                                        +{new Intl.NumberFormat('vi-VN').format(option.price_adjustment)} đ
+                                                    </span>
+                                                </div>
+                                                <label className="option-checkbox">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedToppings.some(t => t.id === option.id)}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                                setSelectedToppings([...selectedToppings, option]);
+                                                            } else {
+                                                                setSelectedToppings(selectedToppings.filter(t => t.id !== option.id));
+                                                            }
+                                                        }}
+                                                    />
+                                                    <span className="checkmark"></span>
+                                                </label>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="selected-options-summary">
+                                        <h4>Tùy chọn đã chọn:</h4>
+                                        <div className="selected-options-list">
+                                            {selectedToppings.map(option => (
+                                                <div key={option.id} className="selected-option-tag">
+                                                    {option.name}
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => setSelectedToppings(
+                                                            selectedToppings.filter(t => t.id !== option.id)
+                                                        )}
+                                                    >
+                                                        <i className="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                    <button 
-                                        type="button" 
-                                        onClick={handleAddOption}
-                                        className="add-option-btn"
-                                    >
-                                        <i className="fas fa-plus"></i> Thêm tùy chọn
-                                    </button>
+                                    </div>
                                 </div>
                             </div>
                             <div className="form-buttons">
@@ -479,6 +583,51 @@ function AdminProducts() {
                     </tbody>
                 </table>
             </div>
+
+            {showOptionModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3>Thêm tùy chọn mới</h3>
+                        <div className="form-group">
+                            <label>Tên tùy chọn</label>
+                            <input
+                                type="text"
+                                value={newOption.name}
+                                onChange={(e) => setNewOption({...newOption, name: e.target.value})}
+                                placeholder="Nhập tên tùy chọn"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Giá</label>
+                            <input
+                                type="number"
+                                value={newOption.price_adjustment}
+                                onChange={(e) => setNewOption({...newOption, price_adjustment: Number(e.target.value)})}
+                                placeholder="Nhập giá"
+                            />
+                        </div>
+                        <div className="modal-buttons">
+                            <button 
+                                type="button" 
+                                className="submit-btn"
+                                onClick={handleAddNewOption}
+                            >
+                                Thêm
+                            </button>
+                            <button 
+                                type="button" 
+                                className="cancel-btn"
+                                onClick={() => {
+                                    setShowOptionModal(false);
+                                    setNewOption({ name: '', price_adjustment: 0 });
+                                }}
+                            >
+                                Hủy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

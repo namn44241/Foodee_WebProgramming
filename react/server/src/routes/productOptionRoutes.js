@@ -14,5 +14,6 @@ router.use(checkRole(['admin']));
 router.post('/create', productOptionController.createOption);
 router.post('/add-to-product', productOptionController.addOptionToProduct);
 router.delete('/:product_id/:option_id', productOptionController.removeOptionFromProduct);
+router.post('/update-product-options', auth, checkRole(['admin']), productOptionController.updateProductOptions);
 
 module.exports = router;

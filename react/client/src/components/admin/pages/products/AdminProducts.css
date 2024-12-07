@@ -220,7 +220,7 @@
     color: white;
 }
 
-/* Style mới cho phần ảnh trong bảng */
+/* Style m�����i cho phần ảnh trong bảng */
 
 
 .table-image-container:hover {
@@ -440,47 +440,169 @@ td .action-buttons {
 }
 
 .options-container {
-    border: 1px solid #ddd;
-    padding: 15px;
-    border-radius: 4px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 15px;
+}
+
+.options-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.options-header h4 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.option-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.option-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.option-card-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.option-name {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.option-price {
+    color: #F28123;
+    font-size: 0.9em;
+    margin-top: 4px;
+}
+
+.option-checkbox {
+    position: relative;
+    cursor: pointer;
+    padding-left: 25px;
+}
+
+.selected-options-summary {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+}
+
+.selected-options-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
     margin-top: 10px;
 }
 
-.option-item {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-    align-items: center;
-}
-
-.option-item input {
-    flex: 1;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.add-option-btn {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
-    cursor: pointer;
+.selected-option-tag {
+    background: #e9ecef;
+    padding: 6px 12px;
+    border-radius: 20px;
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 0.9em;
 }
 
-.remove-option-btn {
-    background: #dc3545;
+.selected-option-tag button {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.add-option-btn {
+    background: #F28123;
     color: white;
     border: none;
-    padding: 6px 12px;
+    padding: 8px 16px;
     border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.option-item input[type="number"] {
-    width: 150px;
+.add-option-btn:hover {
+    background: #e67612;
+    transform: translateY(-1px);
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 500px;
+    position: relative;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-content .form-group {
+    margin-bottom: 15px;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.modal-content input:focus {
+    border-color: #F28123;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(242, 129, 35, 0.1);
 }

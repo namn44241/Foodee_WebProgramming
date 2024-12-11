@@ -1,10 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './ToppingModal.css';
 
 function ToppingModal({ show, onClose, toppings, onConfirm, product }) {
-  console.log('Product in modal:', product);
   const [selectedToppings, setSelectedToppings] = useState([]);
   const [quantity, setQuantity] = useState(1);
+  const modalRef = useRef();
+
+  // Xử lý click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    if (show) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [show, onClose]);
 
   const handleToppingChange = (topping) => {
     const exists = selectedToppings.find(t => t.id === topping.id);
@@ -18,16 +35,16 @@ function ToppingModal({ show, onClose, toppings, onConfirm, product }) {
   if (!show) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
+    <div className="topping-modal-overlay">
+      <div className="topping-modal-content" ref={modalRef}>
+        <div className="topping-modal-header">
           <h3>Chọn Topping</h3>
-          <button className="close-btn" onClick={onClose}>&times;</button>
+          <button className="topping-close-btn" onClick={onClose}>&times;</button>
         </div>
 
-        <div className="modal-body">
-          <div className="product-info">
-            <div className="product-image">
+        <div className="topping-modal-body">
+          <div className="topping-product-info">
+            <div className="topping-product-image">
               <img 
                 src={`http://localhost:5001/uploads/products/${product?.image_name}`}
                 alt={product?.name}
@@ -37,15 +54,15 @@ function ToppingModal({ show, onClose, toppings, onConfirm, product }) {
                 }}
               />
             </div>
-            <div className="product-details">
+            <div className="topping-product-details">
               <h4>{product?.name}</h4>
-              <p className="price">
+              <p className="topping-price">
                 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product?.price)}
               </p>
             </div>
           </div>
 
-          <div className="quantity-section">
+          <div className="topping-quantity-section">
             <label>Số lượng:</label>
             <input 
               type="number" 
@@ -55,10 +72,10 @@ function ToppingModal({ show, onClose, toppings, onConfirm, product }) {
             />
           </div>
 
-          <div className="toppings-list">
+          <div className="topping-toppings-list">
             {toppings.map(topping => (
-              <div key={topping.id} className="topping-item">
-                <div className="topping-checkbox">
+              <div key={topping.id} className="topping-topping-item">
+                <div className="topping-topping-checkbox">
                   <input
                     type="checkbox"
                     id={`topping-${topping.id}`}
@@ -66,11 +83,11 @@ function ToppingModal({ show, onClose, toppings, onConfirm, product }) {
                     onChange={() => handleToppingChange(topping)}
                   />
                 </div>
-                <div className="topping-info">
+                <div className="topping-topping-info">
                   <label htmlFor={`topping-${topping.id}`}>
                     {topping.name}
                   </label>
-                  <span className="topping-price">
+                  <span className="topping-topping-price">
                     {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(topping.price_adjustment)}
                   </span>
                 </div>
@@ -79,10 +96,10 @@ function ToppingModal({ show, onClose, toppings, onConfirm, product }) {
           </div>
         </div>
 
-        <div className="modal-footer">
-          <button className="btn-cancel" onClick={onClose}>Hủy</button>
+        <div className="topping-modal-footer">
+          <button className="topping-btn-cancel" onClick={onClose}>Hủy</button>
           <button 
-            className="btn-confirm"
+            className="topping-btn-confirm"
             onClick={() => onConfirm(quantity, selectedToppings)}
           >
             Xác nhận

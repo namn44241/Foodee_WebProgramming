@@ -8,6 +8,7 @@ import Swal from 'sweetalert2';
 function ProductItem({ product }) {
   const [showToppingModal, setShowToppingModal] = useState(false);
   const [toppings, setToppings] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const { addToCart } = useCart();
 
   const handleAddToCart = async () => {
@@ -24,6 +25,7 @@ function ProductItem({ product }) {
       
       if (response.data.data.hasToppings) {
         setToppings(response.data.data.toppings);
+        setSelectedProduct(product);
         setShowToppingModal(true);
       } else {
         await addToCart(1, product.id, 1);
@@ -75,6 +77,11 @@ function ProductItem({ product }) {
     }
   };
 
+  const handleCloseModal = () => {
+    setShowToppingModal(false);
+    setSelectedProduct(null);
+  };
+
   return (
     <div className={`col-lg-4 col-md-6 text-center ${product.category}`}>
       <div className="single-product-item">
@@ -102,9 +109,10 @@ function ProductItem({ product }) {
 
       <ToppingModal 
         show={showToppingModal}
-        onClose={() => setShowToppingModal(false)}
+        onClose={handleCloseModal}
         toppings={toppings}
         onConfirm={handleToppingConfirm}
+        product={selectedProduct}
       />
     </div>
   );

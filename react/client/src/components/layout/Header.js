@@ -1,9 +1,11 @@
 // src/components/layout/Header.js
 import React, { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { useCart } from '../../contexts/CartContext';
 
 function Header() {
     const [isSticky, setIsSticky] = useState(false);
+    const { cartCount } = useCart();
 
     useEffect(() => {
       const handleScroll = () => {
@@ -48,6 +50,7 @@ function Header() {
                     <div className="header-icons">
                       <Link className="shopping-cart" to="/cart">
                         <i className="fas fa-shopping-cart"></i>
+                        {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
                       </Link>
                       <a className="mobile-hide search-bar-icon" href="#">
                         <i className="fas fa-search"></i>

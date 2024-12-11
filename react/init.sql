@@ -60,6 +60,8 @@ CREATE TABLE orders (
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
+ALTER TABLE orders ADD COLUMN order_toppings JSON AFTER note;
+
 -- Tách thông tin options ra riêng
 CREATE TABLE options (
     id INT PRIMARY KEY AUTO_INCREMENT,

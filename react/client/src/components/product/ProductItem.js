@@ -12,22 +12,17 @@ function ProductItem({ product }) {
 
   const handleAddToCart = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = {
-        Authorization: `Bearer ${token}`
-      };
-
-      const response = await axios.get(
-        `http://localhost:5001/api/products/toppings/${product.id}`,
-        { headers }
-      );
+      // Kiểm tra sản phẩm có topping không
+      const response = await axios.get(`http://localhost:5001/api/products/toppings/${product.id}`);
       
       if (response.data.data.hasToppings) {
         setToppings(response.data.data.toppings);
         setShowToppingModal(true);
       } else {
-        await addToCart(1, product.id, 1);
+        // Thêm trực tiếp vào giỏ nếu không có topping
+        await addToCart(1, product.id, 1); // tableId hard-coded là 1
         
+        // Hiển thị thông báo thành công
         Swal.fire({
           icon: 'success',
           title: 'Đã thêm vào giỏ',
@@ -38,19 +33,11 @@ function ProductItem({ product }) {
       }
     } catch (error) {
       console.error('Error:', error);
-      if (error.response && error.response.status === 401) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Chưa đăng nhập',
-          text: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng'
-        });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Lỗi',
-          text: 'Không thể thêm sản phẩm vào giỏ hàng'
-        });
-      }
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: 'Không thể thêm sản phẩm vào giỏ hàng'
+      });
     }
   };
 
@@ -58,6 +45,7 @@ function ProductItem({ product }) {
     try {
       await addToCart(1, product.id, quantity, selectedToppings);
       
+      // Hiển thị thông báo thành công
       Swal.fire({
         icon: 'success',
         title: 'Đã thêm vào giỏ',
@@ -76,7 +64,7 @@ function ProductItem({ product }) {
   };
 
   return (
-    <div className={`col-lg-4 col-md-6 text-center ${product.category}`}>
+    <div className="col-lg-4 col-md-6 text-center">
       <div className="single-product-item">
         <div className="product-image">
           <Link to={`/product/${product.id}`}>

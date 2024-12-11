@@ -21,4 +21,6 @@ router.post('/', upload.single('image'), processImage, productController.addProd
 router.put('/:id', upload.single('image'), processImage, productController.updateProduct);
 router.delete('/:id', productController.deleteProduct);
 
+router.get('/toppings/:productId', productController.getProductToppings);
+
 module.exports = router;

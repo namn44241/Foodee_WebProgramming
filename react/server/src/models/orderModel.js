@@ -1,9 +1,9 @@
 const db = require('../config/database');
 
 const orderModel = {
-    addToCart: async (tableId, productId, quantity, note = null) => {
+    addToCart: async (tableId, productId, quantity, toppings = [], note = null) => {
         try {
-            // Kiểm tra xem có order pending nào cho bàn này chưa
+            // Kiểm tra order pending
             const [existingOrders] = await db.execute(
                 'SELECT * FROM orders WHERE table_id = ? AND product_id = ? AND status = "pending"',
                 [tableId, productId]
@@ -15,20 +15,33 @@ const orderModel = {
                 [productId]
             );
 
+            // Tính tổng giá topping
+            let toppingTotalPrice = 0;
+            if (toppings.length > 0) {
+                const toppingIds = toppings.map(t => t.id);
+                const [toppingPrices] = await db.execute(
+                    'SELECT id, price_adjustment FROM options WHERE id IN (?)',
+                    [toppingIds]
+                );
+                
+                toppingTotalPrice = toppings.reduce((total, topping) => {
+                    const toppingPrice = toppingPrices.find(t => t.id === topping.id);
+                    return total + (toppingPrice?.price_adjustment || 0) * topping.quantity;
+                }, 0);
+            }
+
             if (existingOrders.length > 0) {
-                // Cập nhật số lượng nếu sản phẩm đã có trong giỏ
+                // Cập nhật order cũ
                 await db.execute(
-                    'UPDATE orders SET quantity = quantity + ? WHERE table_id = ? AND product_id = ? AND status = "pending"',
-                    [quantity, tableId, productId]
+                    'UPDATE orders SET quantity = quantity + ?, order_toppings = ?, note = ? WHERE table_id = ? AND product_id = ? AND status = "pending"',
+                    [quantity, JSON.stringify(toppings), note, tableId, productId]
                 );
             } else {
-                // Tạo order code mới
+                // Tạo order mới
                 const orderCode = `ORD${Date.now()}`;
-                
-                // Thêm order mới
                 await db.execute(
-                    'INSERT INTO orders (table_id, order_code, product_id, quantity, price, note) VALUES (?, ?, ?, ?, ?, ?)',
-                    [tableId, orderCode, productId, quantity, product[0].price, note]
+                    'INSERT INTO orders (table_id, order_code, product_id, quantity, price, order_toppings, note) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                    [tableId, orderCode, productId, quantity, product[0].price + toppingTotalPrice, JSON.stringify(toppings), note]
                 );
             }
             return true;
@@ -40,12 +53,19 @@ const orderModel = {
     getCartItems: async (tableId) => {
         try {
             const [items] = await db.execute(`
-                SELECT o.*, p.name, p.image_name 
+                SELECT o.*, p.name, p.image_name,
+                       o.order_toppings,
+                       (o.price * o.quantity) as total_amount
                 FROM orders o
                 JOIN products p ON o.product_id = p.id
                 WHERE o.table_id = ? AND o.status = "pending"
             `, [tableId]);
-            return items;
+
+            // Parse topping JSON
+            return items.map(item => ({
+                ...item,
+                order_toppings: JSON.parse(item.order_toppings || '[]')
+            }));
         } catch (error) {
             throw error;
         }

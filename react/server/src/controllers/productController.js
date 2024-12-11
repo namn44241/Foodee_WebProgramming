@@ -289,6 +289,34 @@ const productController = {
                 message: 'Lỗi khi lấy sản phẩm liên quan'
             });
         }
+    },
+
+    getProductToppings: async (req, res) => {
+        try {
+            const { productId } = req.params;
+            
+            // Lấy thông tin topping
+            const [toppings] = await db.execute(`
+                SELECT o.* 
+                FROM options o
+                JOIN product_options po ON o.id = po.option_id
+                WHERE po.product_id = ?
+            `, [productId]);
+
+            res.json({
+                success: true,
+                data: {
+                    hasToppings: toppings.length > 0,
+                    toppings: toppings
+                }
+            });
+        } catch (error) {
+            console.error('Error getting product toppings:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi lấy thông tin topping'
+            });
+        }
     }
 };
 

@@ -17,6 +17,7 @@ import AdminLayout from './components/admin/layout/AdminLayout';
 import Dashboard from './components/admin/pages/dashboard/Dashboard';
 import AdminProducts from './components/admin/pages/products/AdminProducts.js';
 import AdminCategories from './components/admin/pages/categories/AdminCategories';
+import { CartProvider } from './contexts/CartContext';
 
 
 // Protected Route Component
@@ -67,30 +68,32 @@ function App() {
   }
 
   return (
-    <Routes>
-      {/* Admin Routes */}
-      <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin" element={
-                <ProtectedRoute>
-                    <AdminLayout />
-                </ProtectedRoute>
-            }>
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="products" element={<AdminProducts />} />
-                <Route path="categories" element={<AdminCategories />} /> 
-            </Route>
+    <CartProvider>
+      <Routes>
+        {/* Admin Routes */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin" element={
+                  <ProtectedRoute>
+                      <AdminLayout />
+                  </ProtectedRoute>
+              }>
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="products" element={<AdminProducts />} />
+                  <Route path="categories" element={<AdminCategories />} /> 
+              </Route>
 
-      {/* Public Routes */}
-      <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="about" element={<About />} />
-        <Route path="contact" element={<Contact />} />
-        <Route path="menu" element={<Menu />} />
-        <Route path="cart" element={<Cart />} />
-        <Route path="checkout" element={<Checkout />} />
-        <Route path="product/:id" element={<SingleProduct />} />
-      </Route>
-    </Routes>
+        {/* Public Routes */}
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="about" element={<About />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="menu" element={<Menu />} />
+          <Route path="cart" element={<Cart />} />
+          <Route path="checkout" element={<Checkout />} />
+          <Route path="product/:id" element={<SingleProduct />} />
+        </Route>
+      </Routes>
+    </CartProvider>
   );
 }
 

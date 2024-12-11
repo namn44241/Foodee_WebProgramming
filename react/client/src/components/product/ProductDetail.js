@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { useCart } from '../../contexts/CartContext';
+import ToppingModal from '../common/ToppingModal';
+import Swal from 'sweetalert2';
 
 function ProductDetail() {
   const { id } = useParams();
@@ -8,6 +11,9 @@ function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showToppingModal, setShowToppingModal] = useState(false);
+  const [toppings, setToppings] = useState([]);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -52,6 +58,55 @@ function ProductDetail() {
     }
   };
 
+  const handleAddToCart = async () => {
+    try {
+      const response = await axios.get(`http://localhost:5001/api/products/toppings/${id}`);
+      
+      if (response.data.data.hasToppings) {
+        setToppings(response.data.data.toppings);
+        setShowToppingModal(true);
+      } else {
+        await addToCart(1, product.id, quantity);
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Đã thêm vào giỏ',
+          text: 'Sản phẩm đã được thêm vào giỏ hàng',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: 'Không thể thêm sản phẩm vào giỏ hàng'
+      });
+    }
+  };
+
+  const handleToppingConfirm = async (qty, selectedToppings) => {
+    try {
+      await addToCart(1, product.id, qty, selectedToppings);
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Đã thêm vào giỏ',
+        text: 'Sản phẩm đã được thêm vào giỏ hàng',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: 'Không thể thêm sản phẩm vào giỏ hàng'
+      });
+    }
+  };
+
   if (loading) return <div className="text-center">Đang tải...</div>;
   if (error) return <div className="text-center text-danger">{error}</div>;
   if (!product) return <div className="text-center">Không tìm thấy sản phẩm</div>;
@@ -86,9 +141,9 @@ function ProductDetail() {
                 min="1"
               />
             </form>
-            <Link to="/cart" className="cart-btn">
+            <button onClick={handleAddToCart} className="cart-btn">
               <i className="fas fa-shopping-cart"></i> Thêm vào Giỏ
-            </Link>
+            </button>
             <p><strong>Danh mục: </strong>{product.category_name}</p>
           </div>
           <h4>Chia sẻ:</h4>

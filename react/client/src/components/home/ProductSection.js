@@ -10,6 +10,7 @@ function ProductSection() {
   const [error, setError] = useState(null);
   const [currentFilter, setCurrentFilter] = useState('*');
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState('grid');
   const productsPerPage = 6;
 
   useEffect(() => {
@@ -79,18 +80,68 @@ function ProductSection() {
           </div>
         </div>
 
-        {/* Product Filters */}
-        <ProductFilters 
-          currentFilter={currentFilter} 
-          onFilterChange={handleFilterChange} 
-        />
-
-        {/* Products Grid */}
-        <div className="row">
-          {currentProducts.map(product => (
-            <ProductItem key={product.id} product={product} />
-          ))}
+        {/* View Mode Toggle & Filters */}
+        <div className="row mb-4">
+          <div className="col-lg-9">
+            <ProductFilters 
+              currentFilter={currentFilter} 
+              onFilterChange={handleFilterChange} 
+            />
+          </div>
+          <div className="col-lg-3 text-right">
+            <div className="view-mode-buttons">
+              <button 
+                className={`btn ${viewMode === 'grid' ? 'btn-primary' : 'btn-outline-primary'} mr-2`}
+                onClick={() => setViewMode('grid')}
+              >
+                <i className="fas fa-th"></i>
+              </button>
+              <button 
+                className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline-primary'}`}
+                onClick={() => setViewMode('list')}
+              >
+                <i className="fas fa-list"></i>
+              </button>
+            </div>
+          </div>
         </div>
+
+        {/* Products Display */}
+        {viewMode === 'grid' ? (
+          // Grid View
+          <div className="row">
+            {currentProducts.map(product => (
+              <ProductItem key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          // List View
+          <div className="product-list">
+            {currentProducts.map(product => (
+              <div key={product.id} className="product-list-item row align-items-center mb-4 p-3 border rounded">
+                <div className="col-md-3">
+                  <img 
+                    src={`http://localhost:5001/uploads/products/${product.image_name}`} 
+                    alt={product.name}
+                    className="img-fluid rounded"
+                  />
+                </div>
+                <div className="col-md-6">
+                  <h4>{product.name}</h4>
+                  <p>{product.description}</p>
+                </div>
+                <div className="col-md-3 text-right">
+                  <div className="price mb-2">
+                    {product.price.toLocaleString('vi-VN')}đ
+                  </div>
+                  <Link to={`/product/${product.id}`} className="boxed-btn">
+                    Chi tiết
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Pagination */}
         <div className="row">

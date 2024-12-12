@@ -1,33 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
-function CartTable() {
-  const [cartItems, setCartItems] = useState([]);
-  const tableId = 1; // Tạm thời hard-code tableId = 1
-
-  useEffect(() => {
-    fetchCartItems();
-  }, []);
-
-  const fetchCartItems = async () => {
-    try {
-      const response = await axios.get(`http://localhost:5001/api/cart/${tableId}`);
-      if (response.data.success) {
-        setCartItems(response.data.data);
-      }
-    } catch (error) {
-      console.error('Error fetching cart items:', error);
-    }
-  };
-
+function CartTable({ cartItems, setCartItems }) {
   const handleQuantityChange = async (orderId, quantity) => {
     try {
       await axios.put('http://localhost:5001/api/cart/update', {
         orderId,
         quantity: parseInt(quantity)
       });
-      fetchCartItems(); // Refresh cart after update
+      
+      // Cập nhật state ngay lập tức với giá tiền mới
+      const updatedItems = cartItems.map(item => {
+        if (item.id === orderId) {
+          return { 
+            ...item, 
+            quantity: parseInt(quantity),
+            total_amount: item.price * parseInt(quantity) // Cập nhật tổng tiền của item
+          };
+        }
+        return item;
+      });
+      
+      setCartItems(updatedItems);
     } catch (error) {
       console.error('Error updating quantity:', error);
     }
@@ -36,7 +31,7 @@ function CartTable() {
   const handleRemoveItem = async (orderId) => {
     try {
       await axios.delete(`http://localhost:5001/api/cart/item/${orderId}`);
-      fetchCartItems(); // Refresh cart after removal
+      setCartItems(cartItems.filter(item => item.id !== orderId));
       Swal.fire({
         icon: 'success',
         title: 'Đã xóa sản phẩm',

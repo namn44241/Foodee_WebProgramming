@@ -2786,7 +2786,7 @@ table.order-details tbody td {
   }
 }
 
-/* Style cho nút thêm vào gi� */
+/* Style cho nút thêm vào gi */
 .cart-btn-wrapper {
   position: relative;
   display: inline-block;
@@ -2875,4 +2875,57 @@ table.order-details tbody td {
 
 .cancel-btn {
   background: #e4e4e4;
+}
+
+.product-list-item {
+  background: #fff;
+  transition: all 0.3s;
+}
+
+.product-list-item:hover {
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+.product-list-item img {
+  max-height: 150px;
+  object-fit: cover;
+}
+
+.product-list-item h4 {
+  color: #051922;
+  margin-bottom: 10px;
+}
+
+.product-list-item .price {
+  color: #F28123;
+  font-weight: 700;
+  font-size: 1.2em;
+}
+
+.view-mode-buttons {
+  margin-top: 20px;
+}
+
+.view-mode-buttons button {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-mode-buttons button.btn-primary {
+  background-color: #F28123;
+  border-color: #F28123;
+}
+
+.view-mode-buttons button.btn-outline-primary {
+  color: #F28123;
+  border-color: #F28123;
+}
+
+.view-mode-buttons button.btn-outline-primary:hover {
+  background-color: #F28123;
+  color: #fff;
 }

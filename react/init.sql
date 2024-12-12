@@ -51,10 +51,12 @@ CREATE TABLE orders (
     order_code VARCHAR(50) UNIQUE NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
-    price DECIMAL(10,2) NOT NULL,
-    total_amount DECIMAL(10,2) GENERATED ALWAYS AS (quantity * price) STORED,
+    base_price DECIMAL(10,2) NOT NULL, -- Giá gốc sản phẩm
+    topping_price DECIMAL(10,2) DEFAULT 0, -- Giá topping
+    total_price DECIMAL(10,2) GENERATED ALWAYS AS (quantity * (base_price + topping_price)) STORED, -- Tổng tiền
     status ENUM('pending', 'cooking', 'served', 'completed', 'cancelled') DEFAULT 'pending',
     note TEXT,
+    order_toppings JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (table_id) REFERENCES tables(id),
     FOREIGN KEY (product_id) REFERENCES products(id)

@@ -3,8 +3,12 @@ const orderModel = require('../models/orderModel');
 const cartController = {
     addToCart: async (req, res) => {
         try {
-            const { tableId, productId, quantity, note } = req.body;
-            await orderModel.addToCart(tableId, productId, quantity, note);
+            const { tableId, productId, quantity, toppings } = req.body;
+            
+            // Đảm bảo toppings là array
+            const toppingArray = Array.isArray(toppings) ? toppings : [];
+            
+            await orderModel.addToCart(tableId, productId, quantity, toppingArray);
             
             res.json({
                 success: true,
@@ -24,9 +28,17 @@ const cartController = {
             const { tableId } = req.params;
             const items = await orderModel.getCartItems(tableId);
             
+            // Format toppings trước khi trả về
+            const formattedItems = items.map(item => ({
+                ...item,
+                order_toppings: Array.isArray(item.order_toppings) 
+                    ? item.order_toppings 
+                    : (item.order_toppings ? JSON.parse(item.order_toppings) : [])
+            }));
+            
             res.json({
                 success: true,
-                data: items
+                data: formattedItems
             });
         } catch (error) {
             console.error('Error getting cart items:', error);

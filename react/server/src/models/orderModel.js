@@ -1,50 +1,88 @@
 const db = require('../config/database');
 
 const orderModel = {
-    addToCart: async (tableId, productId, quantity, toppings = [], note = null) => {
+    addToCart: async (tableId, productId, quantity, toppings = []) => {
         try {
-            // Kiểm tra order pending
-            const [existingOrders] = await db.execute(
-                'SELECT * FROM orders WHERE table_id = ? AND product_id = ? AND status = "pending"',
-                [tableId, productId]
-            );
 
-            // Lấy giá sản phẩm
             const [product] = await db.execute(
-                'SELECT price FROM products WHERE id = ?',
+                'SELECT * FROM products WHERE id = ?',
                 [productId]
             );
 
-            // Tính tổng giá topping
-            let toppingTotalPrice = 0;
-            if (toppings.length > 0) {
-                const toppingIds = toppings.map(t => t.id);
-                const [toppingPrices] = await db.execute(
-                    'SELECT id, price_adjustment FROM options WHERE id IN (?)',
-                    [toppingIds]
-                );
-                
-                toppingTotalPrice = toppings.reduce((total, topping) => {
-                    const toppingPrice = toppingPrices.find(t => t.id === topping.id);
-                    return total + (toppingPrice?.price_adjustment || 0) * topping.quantity;
-                }, 0);
+            if (!product || product.length === 0) {
+                throw new Error('Sản phẩm không tồn tại');
             }
 
-            if (existingOrders.length > 0) {
-                // Cập nhật order cũ
-                await db.execute(
-                    'UPDATE orders SET quantity = quantity + ?, order_toppings = ?, note = ? WHERE table_id = ? AND product_id = ? AND status = "pending"',
-                    [quantity, JSON.stringify(toppings), note, tableId, productId]
+            const toppingTotalPrice = Array.isArray(toppings) 
+                ? toppings.reduce((sum, topping) => sum + (Number(topping.price_adjustment) || 0), 0)
+                : 0;
+
+            const [existingOrders] = await db.execute(
+                `SELECT * FROM orders 
+                WHERE table_id = ? 
+                AND product_id = ? 
+                AND status = 'pending'`,
+                [tableId, productId]
+            );
+
+            // Tìm order có topping giống hệt
+            const matchingOrder = existingOrders.find(order => {
+
+                const existingToppings = order.order_toppings || [];
+                
+                // So sánh từng topping
+                if (existingToppings.length !== toppings.length) {
+                    return false;
+                }
+                
+                return existingToppings.every(existingTopping => 
+                    toppings.some(newTopping => 
+                        existingTopping.id === newTopping.id &&
+                        existingTopping.name === newTopping.name &&
+                        existingTopping.price_adjustment === newTopping.price_adjustment
+                    )
                 );
+            });
+
+            if (matchingOrder) {
+                // Nếu tìm thấy order trùng, update quantity
+                const newQuantity = matchingOrder.quantity + quantity;
+                
+                await db.execute(
+                    `UPDATE orders 
+                    SET quantity = ?
+                    WHERE id = ?`,
+                    [newQuantity, matchingOrder.id]
+                );
+
+                return { updated: true, orderId: matchingOrder.id };
             } else {
-                // Tạo order mới
+                // Nếu không tìm thấy, tạo order mới
                 const orderCode = `ORD${Date.now()}`;
-                await db.execute(
-                    'INSERT INTO orders (table_id, order_code, product_id, quantity, price, order_toppings, note) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    [tableId, orderCode, productId, quantity, product[0].price + toppingTotalPrice, JSON.stringify(toppings), note]
+                
+                const [result] = await db.execute(
+                    `INSERT INTO orders (
+                        table_id, 
+                        order_code, 
+                        product_id, 
+                        quantity, 
+                        base_price,
+                        topping_price,
+                        order_toppings
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                        tableId,
+                        orderCode,
+                        productId,
+                        quantity,
+                        product[0].price,
+                        toppingTotalPrice,
+                        JSON.stringify(toppings)
+                    ]
                 );
+
+                return { updated: false, orderId: result.insertId };
             }
-            return true;
         } catch (error) {
             throw error;
         }
@@ -52,20 +90,18 @@ const orderModel = {
 
     getCartItems: async (tableId) => {
         try {
-            const [items] = await db.execute(`
-                SELECT o.*, p.name, p.image_name,
-                       o.order_toppings,
-                       (o.price * o.quantity) as total_amount
+            const [items] = await db.execute(
+                `SELECT o.*, p.name, p.image_name, 
+                        o.base_price as price,
+                        o.total_price as total_amount,
+                        o.order_toppings
                 FROM orders o
                 JOIN products p ON o.product_id = p.id
-                WHERE o.table_id = ? AND o.status = "pending"
-            `, [tableId]);
-
-            // Parse topping JSON
-            return items.map(item => ({
-                ...item,
-                order_toppings: JSON.parse(item.order_toppings || '[]')
-            }));
+                WHERE o.table_id = ? AND o.status = 'pending'
+                ORDER BY o.created_at DESC`,
+                [tableId]
+            );
+            return items;
         } catch (error) {
             throw error;
         }

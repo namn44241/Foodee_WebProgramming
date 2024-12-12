@@ -10,24 +10,26 @@ export function CartProvider({ children }) {
 
   const addToCart = async (tableId, productId, quantity, toppings = [], note = '') => {
     try {
+      const toppingArray = Array.isArray(toppings) ? toppings : [];
+      
       await axios.post('http://localhost:5001/api/cart/add', {
         tableId,
         productId,
         quantity,
-        toppings,
+        toppings: toppingArray,
         note
       });
 
-      // Refresh cart data
       const response = await axios.get(`http://localhost:5001/api/cart/${tableId}`);
       setCartItems(response.data.data);
       
-      // Cập nhật số lượng và tổng tiền
       const newCount = response.data.data.reduce((total, item) => total + item.quantity, 0);
       const newTotal = response.data.data.reduce((total, item) => {
-        const itemTotal = item.price * item.quantity;
-        const toppingTotal = item.toppings?.reduce((t, top) => t + top.price_adjustment * top.quantity, 0) || 0;
-        return total + itemTotal + toppingTotal;
+        const itemTotal = parseFloat(item.base_price || item.price || 0) * item.quantity;
+        const toppingTotal = Array.isArray(item.toppings) 
+          ? item.toppings.reduce((t, top) => t + parseFloat(top.price_adjustment || 0), 0) 
+          : 0;
+        return total + itemTotal + (toppingTotal * item.quantity);
       }, 0);
 
       setCartCount(newCount);

@@ -3,20 +3,48 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 
 function CartTable({ cartItems, setCartItems }) {
+  const calculateToppingTotal = (toppings) => {
+    try {
+      if (!toppings) return 0;
+      
+      const toppingArray = typeof toppings === 'string' ? JSON.parse(toppings) : toppings;
+      
+      if (!Array.isArray(toppingArray)) return 0;
+      
+      return toppingArray.reduce((total, topping) => {
+        const price = parseFloat(topping.price_adjustment || topping.price || 0);
+        return total + price;
+      }, 0);
+    } catch (error) {
+      console.error('Error calculating topping total:', error);
+      return 0;
+    }
+  };
+
+  const calculateItemTotal = (item) => {
+    const basePrice = Number(item.base_price) || 0;
+    const toppingTotal = calculateToppingTotal(item.order_toppings);
+    const quantity = Number(item.quantity) || 0;
+    return (basePrice + toppingTotal) * quantity;
+  };
+
   const handleQuantityChange = async (orderId, quantity) => {
     try {
+      const newQuantity = parseInt(quantity) || 1;
+      
       await axios.put('http://localhost:5001/api/cart/update', {
         orderId,
-        quantity: parseInt(quantity)
+        quantity: newQuantity
       });
       
-      // Cập nhật state ngay lập tức với giá tiền mới
       const updatedItems = cartItems.map(item => {
         if (item.id === orderId) {
+          const baseTotal = Number(item.base_price) || 0;
+          const toppingTotal = calculateToppingTotal(item.order_toppings);
           return { 
             ...item, 
-            quantity: parseInt(quantity),
-            total_amount: item.price * parseInt(quantity) // Cập nhật tổng tiền của item
+            quantity: newQuantity,
+            total_price: (baseTotal + toppingTotal) * newQuantity
           };
         }
         return item;
@@ -57,41 +85,65 @@ function CartTable({ cartItems, setCartItems }) {
           </tr>
         </thead>
         <tbody>
-          {cartItems.map(item => (
-            <tr key={item.id} className="table-body-row">
-              <td className="product-remove">
-                <button onClick={() => handleRemoveItem(item.id)}>
-                  <i className="far fa-window-close"></i>
-                </button>
-              </td>
-              <td className="product-image">
-                <img 
-                  src={`http://localhost:5001/uploads/products/${item.image_name}`} 
-                  alt={item.name} 
-                />
-              </td>
-              <td className="product-name">
-                {item.name}
-                {item.order_toppings?.length > 0 && (
-                  <div className="product-toppings">
-                    <small>Toppings: {item.order_toppings.map(t => t.name).join(', ')}</small>
-                  </div>
-                )}
-              </td>
-              <td className="product-price">{item.price.toLocaleString('vi-VN')}đ</td>
-              <td className="product-quantity">
-                <input 
-                  type="number" 
-                  value={item.quantity}
-                  min="1"
-                  onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                />
-              </td>
-              <td className="product-total">
-                {(item.price * item.quantity).toLocaleString('vi-VN')}đ
-              </td>
-            </tr>
-          ))}
+          {cartItems.map(item => {
+            let toppings = [];
+            try {
+              toppings = typeof item.order_toppings === 'string' 
+                ? JSON.parse(item.order_toppings) 
+                : (Array.isArray(item.order_toppings) ? item.order_toppings : []);
+            } catch (e) {
+              console.error('Error parsing toppings:', e);
+            }
+
+            const basePrice = Number(item.base_price) || 0;
+            const toppingTotal = calculateToppingTotal(item.order_toppings);
+            const unitPrice = basePrice + toppingTotal;
+
+            console.log('Raw toppings data:', item.toppings);
+
+            return (
+              <tr key={item.id} className="table-body-row">
+                <td className="product-remove">
+                  <button onClick={() => handleRemoveItem(item.id)}>
+                    <i className="far fa-window-close"></i>
+                  </button>
+                </td>
+                <td className="product-image">
+                  <img 
+                    src={`http://localhost:5001/uploads/products/${item.image_name}`} 
+                    alt={item.name} 
+                  />
+                </td>
+                <td className="product-name">
+                  {item.name}
+                  {toppings.length > 0 && (
+                    <div className="product-toppings">
+                      <small>
+                        Toppings: {toppings.map(t => {
+                          const price = Number(t.price) || 0;
+                          return `${t.name} (+${price.toLocaleString('vi-VN')}đ)`;
+                        }).join(', ')}
+                      </small>
+                    </div>
+                  )}
+                </td>
+                <td className="product-price">
+                  {unitPrice.toLocaleString('vi-VN')}đ
+                </td>
+                <td className="product-quantity">
+                  <input 
+                    type="number" 
+                    value={item.quantity}
+                    min="1"
+                    onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                  />
+                </td>
+                <td className="product-total">
+                  {calculateItemTotal(item).toLocaleString('vi-VN')}đ
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

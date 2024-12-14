@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import ProductFilters from '../menu/ProductFilters';
 import ProductItem from '../menu/ProductItem';
+import { useCart } from '../../contexts/CartContext';
+import ToppingModal from '../common/ToppingModal';
+import Swal from 'sweetalert2';
 
 function ProductSection() {
   const [products, setProducts] = useState([]);
@@ -12,6 +15,11 @@ function ProductSection() {
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState('grid');
   const productsPerPage = 6;
+
+  const [showToppingModal, setShowToppingModal] = useState(false);
+  const [toppings, setToppings] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -62,6 +70,78 @@ function ProductSection() {
     } else {
       setCurrentPage(pageNumber);
     }
+  };
+
+  const handleAddToCart = async (product) => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = {
+        Authorization: `Bearer ${token}`
+      };
+
+      const response = await axios.get(
+        `http://localhost:5001/api/products/toppings/${product.id}`,
+        { headers }
+      );
+      
+      if (response.data.data.hasToppings) {
+        setToppings(response.data.data.toppings);
+        setSelectedProduct(product);
+        setShowToppingModal(true);
+      } else {
+        await addToCart(1, product.id, 1);
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Đã thêm vào giỏ',
+          text: 'Sản phẩm đã được thêm vào giỏ hàng',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      if (error.response && error.response.status === 401) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Chưa đăng nhập',
+          text: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng'
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi',
+          text: 'Không thể thêm sản phẩm vào giỏ hàng'
+        });
+      }
+    }
+  };
+
+  const handleToppingConfirm = async (quantity, selectedToppings) => {
+    try {
+      await addToCart(1, selectedProduct.id, quantity, selectedToppings);
+      setShowToppingModal(false);
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Đã thêm vào giỏ',
+        text: 'Sản phẩm đã được thêm vào giỏ hàng',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: 'Không thể thêm sản phẩm vào giỏ hàng'
+      });
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowToppingModal(false);
+    setSelectedProduct(null);
   };
 
   if (loading) return <div className="text-center">Đang tải...</div>;
@@ -120,23 +200,30 @@ function ProductSection() {
             {currentProducts.map(product => (
               <div key={product.id} className="product-list-item row align-items-center mb-4 p-3 border rounded">
                 <div className="col-md-3">
-                  <img 
-                    src={`http://localhost:5001/uploads/products/${product.image_name}`} 
-                    alt={product.name}
-                    className="img-fluid rounded"
-                  />
+                  <Link to={`/product/${product.id}`}>
+                    <img 
+                      src={`http://localhost:5001/uploads/products/${product.image_name}`} 
+                      alt={product.name}
+                      className="img-fluid rounded"
+                    />
+                  </Link>
                 </div>
                 <div className="col-md-6">
-                  <h4>{product.name}</h4>
+                  <Link to={`/product/${product.id}`}>
+                    <h4>{product.name}</h4>
+                  </Link>
                   <p>{product.description}</p>
                 </div>
                 <div className="col-md-3 text-right">
                   <div className="price mb-2">
                     {product.price.toLocaleString('vi-VN')}đ
                   </div>
-                  <Link to={`/product/${product.id}`} className="boxed-btn">
-                    Chi tiết
-                  </Link>
+                  <button 
+                    className="cart-btn"
+                    onClick={() => handleAddToCart(product)}
+                  >
+                    <i className="fas fa-shopping-cart"></i> Thêm vào Giỏ
+                  </button>
                 </div>
               </div>
             ))}
@@ -213,6 +300,14 @@ function ProductSection() {
             </div>
           </div>
         </div>
+
+        <ToppingModal 
+          show={showToppingModal}
+          onClose={handleCloseModal}
+          toppings={toppings}
+          onConfirm={handleToppingConfirm}
+          product={selectedProduct}
+        />
       </div>
     </div>
   );

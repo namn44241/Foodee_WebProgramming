@@ -60,7 +60,15 @@ function ProductDetail() {
 
   const handleAddToCart = async () => {
     try {
-      const response = await axios.get(`http://localhost:5001/api/products/toppings/${id}`);
+      const token = localStorage.getItem('token');
+      const headers = {
+        Authorization: `Bearer ${token}`
+      };
+
+      const response = await axios.get(
+        `http://localhost:5001/api/products/toppings/${id}`,
+        { headers }
+      );
       
       if (response.data.data.hasToppings) {
         setToppings(response.data.data.toppings);
@@ -78,11 +86,19 @@ function ProductDetail() {
       }
     } catch (error) {
       console.error('Error:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Lỗi',
-        text: 'Không thể thêm sản phẩm vào giỏ hàng'
-      });
+      if (error.response && error.response.status === 401) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Chưa đăng nhập',
+          text: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng'
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi',
+          text: 'Không thể thêm sản phẩm vào giỏ hàng'
+        });
+      }
     }
   };
 
@@ -105,6 +121,10 @@ function ProductDetail() {
         text: 'Không thể thêm sản phẩm vào giỏ hàng'
       });
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowToppingModal(false);
   };
 
   if (loading) return <div className="text-center">Đang tải...</div>;
@@ -166,6 +186,14 @@ function ProductDetail() {
           </ul>
         </div>
       </div>
+
+      <ToppingModal 
+        show={showToppingModal}
+        onClose={handleCloseModal}
+        toppings={toppings}
+        onConfirm={handleToppingConfirm}
+        product={product}
+      />
     </div>
   );
 }

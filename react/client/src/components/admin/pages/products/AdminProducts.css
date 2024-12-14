@@ -222,8 +222,8 @@
 
 /* Style cho phần ảnh trong bảng */
 .table-image-container {
-    width: 140px;
-    height: 140px;
+    width: 80px;
+    height: 80px;
     overflow: hidden;
     border-radius: 8px;
     transition: all 0.3s ease;
@@ -254,6 +254,11 @@
     transform: scale(1.05);
 }
 
+.image-preview {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+}
 /* Switch Toggle Style */
 .toggle-container {
     display: flex;

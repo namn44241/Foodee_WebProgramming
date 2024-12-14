@@ -9,6 +9,8 @@ function OrderList() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -40,6 +42,42 @@ function OrderList() {
       }, 500);
     } else {
       setShowForm(true);
+    }
+  };
+
+  const handleViewOrder = (order) => {
+    setSelectedOrder(order);
+    setShowEditModal(true);
+  };
+
+  const handleSetCompleted = async (orderId) => {
+    try {
+      await axios.put(`http://localhost:5001/api/orders/${orderId}/complete`);
+      fetchOrders();
+      Swal.fire('Thành công', 'Đã cập nhật trạng thái đơn hàng', 'success');
+    } catch (error) {
+      Swal.fire('Lỗi', 'Không thể cập nhật trạng thái đơn hàng', 'error');
+    }
+  };
+
+  const handleSetPending = async (orderId) => {
+    try {
+      await axios.put(`http://localhost:5001/api/orders/${orderId}/pending`);
+      fetchOrders();
+      Swal.fire('Thành công', 'Đã cập nhật trạng thái đơn hàng', 'success');
+    } catch (error) {
+      Swal.fire('Lỗi', 'Không thể cập nhật trạng thái đơn hàng', 'error');
+    }
+  };
+
+  const handleUpdateOrder = async (updatedData) => {
+    try {
+      await axios.put(`http://localhost:5001/api/orders/${selectedOrder.id}`, updatedData);
+      setShowEditModal(false);
+      fetchOrders();
+      Swal.fire('Thành công', 'Đã cập nhật đơn hàng', 'success');
+    } catch (error) {
+      Swal.fire('Lỗi', 'Không thể cập nhật đơn hàng', 'error');
     }
   };
 
@@ -79,6 +117,7 @@ function OrderList() {
               <th>Tổng tiền</th>
               <th>Trạng thái</th>
               <th>Thời gian</th>
+              <th>Ghi chú</th>
               <th>Thao tác</th>
             </tr>
           </thead>
@@ -101,18 +140,17 @@ function OrderList() {
                     </span>
                   </td>
                   <td>{new Date(order.created_at).toLocaleString('vi-VN')}</td>
+                  <td>{order.note || '-'}</td>
                   <td className="action-buttons">
-                    <button className="edit-btn">
+                    <button className="edit-btn" onClick={() => handleViewOrder(order)}>
                       <i className="fas fa-eye"></i>
                     </button>
-                    <button className="update-btn">
-                      <i className="fas fa-check"></i>
+                    <button className="update-btn" onClick={() => handleSetCompleted(order.id)}>
+                      <i className="fas fa-check text-success"></i>
                     </button>
-                    {order.status === 'pending' && (
-                      <button className="delete-btn">
-                        <i className="fas fa-times"></i>
-                      </button>
-                    )}
+                    <button className="delete-btn" onClick={() => handleSetPending(order.id)}>
+                      <i className="fas fa-times text-danger"></i>
+                    </button>
                   </td>
                 </tr>
               ))
@@ -120,6 +158,56 @@ function OrderList() {
           </tbody>
         </table>
       </div>
+
+      {showEditModal && selectedOrder && (
+        <div className="modal" onClick={(e) => {
+          if (e.target.className === 'modal') {
+            setShowEditModal(false);
+          }
+        }}>
+          <div className={`modal-content ${showEditModal ? 'modal-enter' : 'modal-exit'}`}>
+            <h3>Chỉnh sửa đơn hàng</h3>
+            <div className="form-group">
+              <label>Mã đơn: {selectedOrder.order_code}</label>
+            </div>
+            <div className="form-group">
+              <label>Bàn: {selectedOrder.table_number}</label>
+            </div>
+            <div className="form-group">
+              <label>Sản phẩm: {selectedOrder.product_name}</label>
+            </div>
+            <div className="form-group">
+              <label>Số lượng:</label>
+              <input 
+                type="number" 
+                value={selectedOrder.quantity}
+                onChange={(e) => setSelectedOrder({
+                  ...selectedOrder,
+                  quantity: e.target.value
+                })}
+              />
+            </div>
+            <div className="form-group">
+              <label>Ghi chú:</label>
+              <textarea
+                value={selectedOrder.note || ''}
+                onChange={(e) => setSelectedOrder({
+                  ...selectedOrder,
+                  note: e.target.value
+                })}
+              />
+            </div>
+            <div className="modal-actions">
+              <button onClick={() => handleUpdateOrder(selectedOrder)}>
+                Lưu thay đổi
+              </button>
+              <button onClick={() => setShowEditModal(false)}>
+                Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

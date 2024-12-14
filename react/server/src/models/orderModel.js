@@ -141,6 +141,205 @@ const orderModel = {
         } catch (error) {
             throw error;
         }
+    },
+
+    createOrder: async (tableId, products) => {
+        try {
+            const orderCode = `ORD${Date.now()}`;
+            const connection = await db.getConnection();
+            await connection.beginTransaction();
+
+            try {
+                console.log('Creating order with products:', products);
+
+                if (!Array.isArray(products)) {
+                    products = [products];
+                }
+
+                // Thêm từng sản phẩm vào đơn hàng
+                for (const product of products) {
+                    const { 
+                        product_id, 
+                        quantity, 
+                        base_price, 
+                        topping_price = 0, 
+                        note = '', 
+                        order_toppings = null 
+                    } = product;
+
+                    await connection.execute(
+                        `INSERT INTO orders (
+                            table_id, 
+                            order_code, 
+                            product_id, 
+                            quantity, 
+                            base_price, 
+                            topping_price, 
+                            note, 
+                            order_toppings,
+                            status
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+                        [
+                            tableId,
+                            orderCode,
+                            product_id,
+                            quantity,
+                            base_price,
+                            topping_price,
+                            note,
+                            order_toppings ? JSON.stringify(order_toppings) : null
+                        ]
+                    );
+                }
+
+                // Cập nhật trạng thái bàn
+                await connection.execute(
+                    'UPDATE tables SET status = "occupied" WHERE id = ?',
+                    [tableId]
+                );
+
+                await connection.commit();
+                connection.release();
+                return { order_code: orderCode };
+            } catch (err) {
+                await connection.rollback();
+                connection.release();
+                throw err;
+            }
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    getAllOrders: async () => {
+        try {
+            console.log('Executing getAllOrders query...');
+            
+            const [orders] = await db.execute(`
+                SELECT 
+                    o.id,
+                    o.order_code,
+                    o.table_id,
+                    o.product_id,
+                    o.quantity,
+                    o.base_price,
+                    o.topping_price,
+                    o.total_price,
+                    o.status,
+                    o.note,
+                    o.order_toppings,
+                    o.created_at,
+                    p.name as product_name,
+                    t.table_number,
+                    p.image_name
+                FROM orders o
+                LEFT JOIN products p ON o.product_id = p.id
+                LEFT JOIN tables t ON o.table_id = t.id
+                ORDER BY o.created_at DESC
+            `);
+
+            // Format lại dữ liệu một cách an toàn
+            const formattedOrders = orders.map(order => {
+                let parsedToppings = [];
+                if (order.order_toppings && order.order_toppings !== '[]') {
+                    try {
+                        parsedToppings = JSON.parse(order.order_toppings);
+                    } catch (e) {
+                        console.log('Invalid order_toppings format:', order.order_toppings);
+                    }
+                }
+
+                return {
+                    ...order,
+                    order_toppings: parsedToppings
+                };
+            });
+            
+            return formattedOrders;
+        } catch (error) {
+            console.error('Database error in getAllOrders:', error);
+            throw error;
+        }
+    },
+
+    updateStatus: async (orderId, status) => {
+        try {
+            await db.execute(
+                'UPDATE orders SET status = ? WHERE id = ?',
+                [status, orderId]
+            );
+            return true;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    updateOrder: async (orderId, data) => {
+        try {
+            const { quantity, note } = data;
+            await db.execute(
+                'UPDATE orders SET quantity = ?, note = ? WHERE id = ?',
+                [quantity, note, orderId]
+            );
+            return true;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    deleteOrder: async (orderId) => {
+        try {
+            await db.execute(
+                'DELETE FROM orders WHERE id = ?',
+                [orderId]
+            );
+            return true;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    exportOrder: async (orderId) => {
+        try {
+            const [order] = await db.execute(`
+                SELECT 
+                    o.*,
+                    p.name as product_name,
+                    t.table_number
+                FROM orders o
+                LEFT JOIN products p ON o.product_id = p.id
+                LEFT JOIN tables t ON o.table_id = t.id
+                WHERE o.id = ?
+            `, [orderId]);
+            
+            return order[0];
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    setOrderCompleted: async (orderId) => {
+        try {
+            await db.execute(
+                'UPDATE orders SET status = ? WHERE id = ?',
+                ['completed', orderId]
+            );
+            return true;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    setOrderPending: async (orderId) => {
+        try {
+            await db.execute(
+                'UPDATE orders SET status = ? WHERE id = ?',
+                ['pending', orderId]
+            );
+            return true;
+        } catch (error) {
+            throw error;
+        }
     }
 };
 

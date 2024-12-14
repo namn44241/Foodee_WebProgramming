@@ -54,7 +54,7 @@ CREATE TABLE orders (
     base_price DECIMAL(10,2) NOT NULL, -- Giá gốc sản phẩm
     topping_price DECIMAL(10,2) DEFAULT 0, -- Giá topping
     total_price DECIMAL(10,2) GENERATED ALWAYS AS (quantity * (base_price + topping_price)) STORED, -- Tổng tiền
-    status ENUM('pending', 'cooking', 'served', 'completed', 'cancelled') DEFAULT 'pending',
+    status ENUM('pending', 'completed') DEFAULT 'pending',
     note TEXT,
     order_toppings JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

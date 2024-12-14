@@ -17,6 +17,7 @@ import AdminLayout from './components/admin/layout/AdminLayout';
 import Dashboard from './components/admin/pages/dashboard/Dashboard';
 import AdminProducts from './components/admin/pages/products/AdminProducts.js';
 import AdminCategories from './components/admin/pages/categories/AdminCategories';
+import OrderList from './components/admin/pages/orders/OrderList';
 import { CartProvider } from './contexts/CartContext';
 
 
@@ -80,6 +81,7 @@ function App() {
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="products" element={<AdminProducts />} />
                   <Route path="categories" element={<AdminCategories />} /> 
+                  <Route path="orders" element={<OrderList />} />
               </Route>
 
         {/* Public Routes */}

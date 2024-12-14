@@ -1,0 +1,81 @@
+.order-form {
+    padding: 20px;
+  }
+  
+  .order-form h3 {
+    margin-bottom: 20px;
+    color: #2c3e50;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #34495e;
+    font-weight: 500;
+  }
+  
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .form-group input:focus,
+  .form-group select:focus {
+    border-color: #F28123;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(242, 129, 35, 0.1);
+  }
+  
+  .toppings-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  
+  .topping-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+  }
+  
+  .form-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+  
+  .submit-btn,
+  .cancel-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  
+  .submit-btn {
+    background: #F28123;
+    color: white;
+  }
+  
+  .cancel-btn {
+    background: #e74c3c;
+    color: white;
+  }
+  
+  .submit-btn:hover,
+  .cancel-btn:hover {
+    transform: translateY(-2px);
+  }

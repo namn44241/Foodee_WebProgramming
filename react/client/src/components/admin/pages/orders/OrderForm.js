@@ -40,7 +40,6 @@ function OrderForm({ onClose }) {
   const handleProductSelect = async (product) => {
     setSelectedProduct(product);
     try {
-      // Thêm config vào request
       const response = await axios.get(
         `http://localhost:5001/api/products/toppings/${product.id}`,
         config
@@ -50,14 +49,30 @@ function OrderForm({ onClose }) {
         setToppings(response.data.data.toppings);
         setShowToppingModal(true);
       } else {
-        // Nếu không có topping, thêm trực tiếp vào orderItems
-        const newItem = {
-          product: product,
-          quantity: 1,
-          toppings: [],
-          total: product.price
-        };
-        setOrderItems([...orderItems, newItem]);
+        // Kiểm tra xem sản phẩm đã tồn tại trong orderItems chưa
+        const existingItemIndex = orderItems.findIndex(item => 
+          item.product.id === product.id && item.toppings.length === 0
+        );
+
+        if (existingItemIndex !== -1) {
+          // Nếu đã tồn tại, tăng số lượng
+          const updatedItems = [...orderItems];
+          updatedItems[existingItemIndex] = {
+            ...updatedItems[existingItemIndex],
+            quantity: updatedItems[existingItemIndex].quantity + 1,
+            total: (updatedItems[existingItemIndex].quantity + 1) * product.price
+          };
+          setOrderItems(updatedItems);
+        } else {
+          // Nếu chưa tồn tại, thêm mới
+          const newItem = {
+            product: product,
+            quantity: 1,
+            toppings: [],
+            total: product.price
+          };
+          setOrderItems([...orderItems, newItem]);
+        }
       }
     } catch (error) {
       console.error('Error fetching toppings:', error);
@@ -66,13 +81,42 @@ function OrderForm({ onClose }) {
   };
 
   const handleToppingConfirm = (quantity, selectedToppings) => {
-    const newItem = {
-      product: selectedProduct,
-      quantity,
-      toppings: selectedToppings,
-      total: calculateItemTotal(selectedProduct, quantity, selectedToppings)
-    };
-    setOrderItems([...orderItems, newItem]);
+    // Đảm bảo các giá trị là số
+    const basePrice = Number(selectedProduct.price) || 0;
+    const toppingTotal = selectedToppings.reduce((sum, t) => sum + (Number(t.price_adjustment) || 0), 0);
+    const totalPrice = (basePrice + toppingTotal) * quantity;
+
+    // Kiểm tra sản phẩm với cùng topping đã tồn tại chưa
+    const existingItemIndex = orderItems.findIndex(item => {
+      if (item.product.id !== selectedProduct.id) return false;
+      if (item.toppings.length !== selectedToppings.length) return false;
+      return item.toppings.every(t1 => 
+        selectedToppings.some(t2 => t2.id === t1.id)
+      );
+    });
+
+    if (existingItemIndex !== -1) {
+      // Nếu đã tồn tại, cập nhật số lượng và tính lại tổng tiền
+      const updatedItems = [...orderItems];
+      const existingItem = updatedItems[existingItemIndex];
+      const newQuantity = existingItem.quantity + quantity;
+      updatedItems[existingItemIndex] = {
+        ...existingItem,
+        quantity: newQuantity,
+        total: (basePrice + toppingTotal) * newQuantity
+      };
+      setOrderItems(updatedItems);
+    } else {
+      // Nếu chưa tồn tại, thêm mới
+      const newItem = {
+        product: selectedProduct,
+        quantity: quantity,
+        toppings: selectedToppings,
+        total: totalPrice
+      };
+      setOrderItems([...orderItems, newItem]);
+    }
+
     setShowToppingModal(false);
   };
 
@@ -111,7 +155,7 @@ function OrderForm({ onClose }) {
     <div className="order-form">
       <h3>Thêm đơn hàng mới</h3>
       
-      <div className="form-group">
+      <div className="form-group-order">
         <label>Số bàn</label>
         <input
           type="number"

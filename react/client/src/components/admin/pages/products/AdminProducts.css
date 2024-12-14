@@ -220,23 +220,29 @@
     color: white;
 }
 
-/* Style m�����i cho phần ảnh trong bảng */
-
+/* Style cho phần ảnh trong bảng */
+.table-image-container {
+    width: 140px;
+    height: 140px;
+    overflow: hidden;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
 
 .table-image-container:hover {
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     transform: translateY(-2px);
 }
 
-.product-image {
+.product-image-admin {
     width: 100%;
     height: 100%;
-    object-fit: contain; /* Thay đổi từ cover sang contain */
+    object-fit: contain;
     display: block;
     transition: transform 0.3s ease;
 }
 
-/* Thêm style cho cột hình ảnh */
+/* Style cho cột hình ảnh */
 .products-table td:first-child {
     width: 140px;
     padding: 12px;
@@ -246,74 +252,6 @@
 /* Style cho hover effect */
 .table-image-container:hover .product-image {
     transform: scale(1.05);
-}
-
-/* Thêm animation khi ảnh load */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.product-image {
-    animation: fadeIn 0.3s ease-out;
-}
-
-/* Debug styles */
-.table-image-container img[src=""] {
-    display: none;
-}
-
-.table-image-container img:not([src]) {
-    display: none;
-}
-
-/* Style cho container chứa input file và preview */
-.image-upload-container {
-    position: relative;
-    width: 100%;
-    min-height: 100px;
-    margin-bottom: 20px;
-}
-
-/* Style cho phần preview ảnh */
-.image-preview {
-    width: 200px;
-    height: 200px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.image-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-/* Đảm bảo form buttons luôn ở dưới cùng và hiển thị */
-.form-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 20px;
-    position: sticky;
-    bottom: 0;
-    background: white;
-    padding: 15px 0;
-    z-index: 10;
-}
-
-/* Đảm bảo form không bị overflow */
-.product-form {
-    position: relative;
-    padding-bottom: 60px; /* Tạo khoảng trống cho buttons */
 }
 
 /* Switch Toggle Style */
@@ -328,8 +266,8 @@
 .switch {
     position: relative;
     display: inline-block;
-    width: 46px;  /* Giảm kích thước */
-    height: 24px; /* Giảm kích thước */
+    width: 46px;
+    height: 24px;
 }
 
 .switch input {
@@ -352,8 +290,8 @@
 .slider:before {
     position: absolute;
     content: "";
-    height: 18px; /* Giảm kích thước */
-    width: 18px;  /* Giảm kích thước */
+    height: 18px;
+    width: 18px;
     left: 3px;
     bottom: 3px;
     background-color: white;
@@ -366,10 +304,6 @@ input:checked + .slider {
 
 input:focus + .slider {
     box-shadow: 0 0 1px #2ecc71;
-}
-
-input:checked + .slider:before {
-    transform: translateX(22px); /* Điều chỉnh khoảng cách di chuyển */
 }
 
 .slider.round {
@@ -552,57 +486,4 @@ td .action-buttons {
 .add-option-btn:hover {
     background: #e67612;
     transform: translateY(-1px);
-}
-
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    padding: 24px;
-    border-radius: 8px;
-    width: 100%;
-    max-width: 500px;
-    position: relative;
-}
-
-.modal-content h3 {
-    margin-top: 0;
-    margin-bottom: 20px;
-    color: #2c3e50;
-}
-
-.modal-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.modal-content .form-group {
-    margin-bottom: 15px;
-}
-
-.modal-content input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.modal-content input:focus {
-    border-color: #F28123;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(242, 129, 35, 0.1);
 }

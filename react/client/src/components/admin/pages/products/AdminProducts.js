@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import './AdminProducts.css';
+// import './ProductOptionModal.css';
 
 function AdminProducts() {
     const [products, setProducts] = useState([]);
@@ -433,7 +434,7 @@ function AdminProducts() {
                                             type="file"
                                             onChange={handleImageChange}
                                             accept="image/*"
-                                            required={!formData.id && !imagePreview} // Chỉ bắt buộc khi thêm mới và ch��a có ảnh
+                                            required={!formData.id && !imagePreview} // Chỉ bắt buộc khi thêm mới và chưa có ảnh
                                         />
                                         {formData.id && !formData.image && (
                                             <small className="text-muted">
@@ -568,7 +569,7 @@ function AdminProducts() {
                                             <img 
                                                 src={`http://localhost:5001/uploads/products/${product.image_name}`}
                                                 alt={product.name} 
-                                                className="product-image"
+                                                className="product-image-admin"
                                                 onError={(e) => {
                                                     console.log('Image load error:', e);
                                                     e.target.onerror = null;
@@ -603,10 +604,10 @@ function AdminProducts() {
             </div>
 
             {showOptionModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
+                <div className="product-option-modal-overlay">
+                    <div className="product-option-modal-container">
                         <h3>Thêm tùy chọn mới</h3>
-                        <div className="form-group">
+                        <div className="product-option-form-group">
                             <label>Tên tùy chọn</label>
                             <input
                                 type="text"
@@ -615,7 +616,7 @@ function AdminProducts() {
                                 placeholder="Nhập tên tùy chọn"
                             />
                         </div>
-                        <div className="form-group">
+                        <div className="product-option-form-group">
                             <label>Giá</label>
                             <input
                                 type="number"
@@ -624,17 +625,17 @@ function AdminProducts() {
                                 placeholder="Nhập giá"
                             />
                         </div>
-                        <div className="modal-buttons">
+                        <div className="product-option-buttons">
                             <button 
                                 type="button" 
-                                className="submit-btn"
+                                className="product-option-confirm"
                                 onClick={handleAddNewOption}
                             >
                                 Thêm
                             </button>
                             <button 
                                 type="button" 
-                                className="cancel-btn"
+                                className="product-option-cancel"
                                 onClick={() => {
                                     setShowOptionModal(false);
                                     setNewOption({ name: '', price_adjustment: 0 });

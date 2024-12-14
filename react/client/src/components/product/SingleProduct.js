@@ -7,17 +7,12 @@ import LogoCarousel from '../home/LogoCarousel';
 function SingleProduct() {
   return (
     <>
-      <BreadcrumbSection 
-        title="Single Product" 
-        subtitle="See more Details"
-      />
-
+      <BreadcrumbSection />
       <div className="single-product mt-150 mb-150">
         <div className="container">
           <ProductDetail />
         </div>
       </div>
-
       <RelatedProducts />
       <LogoCarousel />
     </>

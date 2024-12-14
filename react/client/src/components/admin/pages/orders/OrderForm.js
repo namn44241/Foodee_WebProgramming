@@ -1,14 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import OrderProductCard from './OrderProductCard';
+import ToppingModal from './ToppingModal';
+import './OrderForm.css';
 
 function OrderForm({ onClose }) {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [quantity, setQuantity] = useState(1);
+  const [showToppingModal, setShowToppingModal] = useState(false);
   const [toppings, setToppings] = useState([]);
-  const [selectedToppings, setSelectedToppings] = useState([]);
   const [tableNumber, setTableNumber] = useState('');
+  const [orderItems, setOrderItems] = useState([]);
+
+  // Lấy token từ localStorage
+  const token = localStorage.getItem('token');
+
+  // Config cho axios với headers
+  const config = {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -20,46 +33,71 @@ function OrderForm({ onClose }) {
       setProducts(response.data.data);
     } catch (error) {
       console.error('Error fetching products:', error);
+      Swal.fire('Lỗi', 'Không thể tải danh sách sản phẩm', 'error');
     }
   };
 
   const handleProductSelect = async (product) => {
     setSelectedProduct(product);
     try {
-      const response = await axios.get(`http://localhost:5001/api/products/toppings/${product.id}`);
+      // Thêm config vào request
+      const response = await axios.get(
+        `http://localhost:5001/api/products/toppings/${product.id}`,
+        config
+      );
+      
       if (response.data.data.hasToppings) {
         setToppings(response.data.data.toppings);
+        setShowToppingModal(true);
       } else {
-        setToppings([]);
+        // Nếu không có topping, thêm trực tiếp vào orderItems
+        const newItem = {
+          product: product,
+          quantity: 1,
+          toppings: [],
+          total: product.price
+        };
+        setOrderItems([...orderItems, newItem]);
       }
     } catch (error) {
       console.error('Error fetching toppings:', error);
+      Swal.fire('Lỗi', 'Không thể tải thông tin topping', 'error');
     }
   };
 
-  const handleToppingToggle = (topping) => {
-    const exists = selectedToppings.find(t => t.id === topping.id);
-    if (exists) {
-      setSelectedToppings(selectedToppings.filter(t => t.id !== topping.id));
-    } else {
-      setSelectedToppings([...selectedToppings, topping]);
-    }
+  const handleToppingConfirm = (quantity, selectedToppings) => {
+    const newItem = {
+      product: selectedProduct,
+      quantity,
+      toppings: selectedToppings,
+      total: calculateItemTotal(selectedProduct, quantity, selectedToppings)
+    };
+    setOrderItems([...orderItems, newItem]);
+    setShowToppingModal(false);
+  };
+
+  const calculateItemTotal = (product, quantity, toppings) => {
+    const toppingTotal = toppings.reduce((sum, t) => sum + t.price_adjustment, 0);
+    return (product.price + toppingTotal) * quantity;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedProduct || !tableNumber) {
-      Swal.fire('Lỗi', 'Vui lòng chọn sản phẩm và số bàn', 'error');
+    if (!tableNumber || orderItems.length === 0) {
+      Swal.fire('Lỗi', 'Vui lòng chọn số bàn và ít nhất một món', 'error');
       return;
     }
 
     try {
-      await axios.post('http://localhost:5001/api/orders/add', {
-        tableId: tableNumber,
-        productId: selectedProduct.id,
-        quantity: quantity,
-        toppings: selectedToppings
-      });
+      // Gửi từng món một
+      for (const item of orderItems) {
+        await axios.post('http://localhost:5001/api/orders/add', {
+          tableId: tableNumber,
+          productId: item.product.id,
+          quantity: item.quantity,
+          toppings: item.toppings
+        });
+      }
 
       Swal.fire('Thành công', 'Đã thêm đơn hàng mới', 'success');
       onClose();
@@ -72,70 +110,70 @@ function OrderForm({ onClose }) {
   return (
     <div className="order-form">
       <h3>Thêm đơn hàng mới</h3>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Số bàn</label>
-          <input
-            type="number"
-            value={tableNumber}
-            onChange={(e) => setTableNumber(e.target.value)}
-            required
-            min="1"
+      
+      <div className="form-group">
+        <label>Số bàn</label>
+        <input
+          type="number"
+          value={tableNumber}
+          onChange={(e) => setTableNumber(e.target.value)}
+          required
+          min="1"
+        />
+      </div>
+
+      <div className="products-grid">
+        {products.map(product => (
+          <OrderProductCard
+            key={product.id}
+            product={product}
+            onSelect={handleProductSelect}
           />
-        </div>
+        ))}
+      </div>
 
-        <div className="form-group">
-          <label>Chọn món</label>
-          <select 
-            onChange={(e) => handleProductSelect(products.find(p => p.id === parseInt(e.target.value)))}
-            required
-          >
-            <option value="">Chọn món</option>
-            {products.map(product => (
-              <option key={product.id} value={product.id}>
-                {product.name} - {new Intl.NumberFormat('vi-VN').format(product.price)}đ
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label>Số lượng</label>
-          <input
-            type="number"
-            value={quantity}
-            onChange={(e) => setQuantity(parseInt(e.target.value))}
-            min="1"
-            required
-          />
-        </div>
-
-        {toppings.length > 0 && (
-          <div className="form-group">
-            <label>Tùy chọn thêm</label>
-            <div className="toppings-list">
-              {toppings.map(topping => (
-                <div key={topping.id} className="topping-item">
-                  <input
-                    type="checkbox"
-                    id={`topping-${topping.id}`}
-                    checked={selectedToppings.some(t => t.id === topping.id)}
-                    onChange={() => handleToppingToggle(topping)}
-                  />
-                  <label htmlFor={`topping-${topping.id}`}>
-                    {topping.name} (+{new Intl.NumberFormat('vi-VN').format(topping.price_adjustment)}đ)
-                  </label>
+      {orderItems.length > 0 && (
+        <div className="selected-items">
+          <h4>Món đã chọn:</h4>
+          {orderItems.map((item, index) => (
+            <div key={index} className="selected-item">
+              <span>{item.product.name} x {item.quantity}</span>
+              {item.toppings.length > 0 && (
+                <div className="item-toppings">
+                  {item.toppings.map(t => t.name).join(', ')}
                 </div>
-              ))}
+              )}
+              <span>{new Intl.NumberFormat('vi-VN').format(item.total)}đ</span>
             </div>
+          ))}
+          <div className="order-total">
+            <strong>Tổng cộng: </strong>
+            <span>
+              {new Intl.NumberFormat('vi-VN').format(
+                orderItems.reduce((sum, item) => sum + item.total, 0)
+              )}đ
+            </span>
           </div>
-        )}
-
-        <div className="form-buttons">
-          <button type="submit" className="submit-btn">Thêm đơn</button>
-          <button type="button" className="cancel-btn" onClick={onClose}>Hủy</button>
         </div>
-      </form>
+      )}
+
+      <div className="form-buttons">
+        <button type="button" className="submit-btn" onClick={handleSubmit}>
+          Xác nhận đơn hàng
+        </button>
+        <button type="button" className="cancel-btn" onClick={onClose}>
+          Hủy
+        </button>
+      </div>
+
+      {showToppingModal && (
+        <ToppingModal
+          product={selectedProduct}
+          toppings={toppings}
+          onConfirm={handleToppingConfirm}
+          onClose={() => setShowToppingModal(false)}
+        />
+      )}
     </div>
   );
 }

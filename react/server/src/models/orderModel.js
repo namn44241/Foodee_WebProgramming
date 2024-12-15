@@ -191,42 +191,53 @@ const orderModel = {
                     o.id,
                     o.order_code,
                     o.table_id,
-                    o.total_amount,
                     o.status,
                     o.created_at,
                     t.table_number,
+                    SUM(oi.total_price) as total_amount,
                     GROUP_CONCAT(
                         CONCAT(
                             p.name,
                             CASE 
-                                WHEN oi.order_toppings != '[]' 
+                                WHEN oi.order_toppings IS NOT NULL AND oi.order_toppings != '[]' 
                                 THEN CONCAT(' - ', 
                                     REPLACE(
                                         REPLACE(
-                                            JSON_EXTRACT(oi.order_toppings, '$[0].name'),
-                                            '"', ''
+                                            REPLACE(
+                                                JSON_EXTRACT(oi.order_toppings, '$[*].name'),
+                                                '[', ''
+                                            ),
+                                            ']', ''
                                         ),
-                                        '\\\\', ''
+                                        '"', ''
                                     )
                                 )
                                 ELSE ''
                             END,
                             ' x',
                             oi.quantity
-                        )
+                        ) 
+                        ORDER BY oi.id DESC SEPARATOR '\n'
                     ) as product_details
                 FROM orders o
                 LEFT JOIN tables t ON o.table_id = t.id
-                LEFT JOIN order_items oi ON o.id = oi.order_id
-                LEFT JOIN products p ON oi.product_id = p.id
-                GROUP BY o.id
+                INNER JOIN order_items oi ON o.id = oi.order_id
+                INNER JOIN products p ON oi.product_id = p.id
+                GROUP BY 
+                    o.id,
+                    o.order_code,
+                    o.table_id,
+                    o.status,
+                    o.created_at,
+                    t.table_number
                 ORDER BY o.created_at DESC
             `);
             
             return orders.map(order => ({
                 ...order,
                 product_details: order.product_details ? 
-                    order.product_details.split(',') : []
+                    order.product_details.split('\n') : [],
+                total_amount: parseFloat(order.total_amount || 0)
             }));
         } catch (error) {
             throw error;
@@ -275,15 +286,50 @@ const orderModel = {
             const [order] = await db.execute(`
                 SELECT 
                     o.*,
-                    p.name as product_name,
-                    t.table_number
+                    t.table_number,
+                    GROUP_CONCAT(
+                        DISTINCT
+                        CONCAT(
+                            p.name,
+                            IF(oi.order_toppings IS NOT NULL AND oi.order_toppings != '[]',
+                                CONCAT(
+                                    ' - ',
+                                    TRIM(
+                                        BOTH ',' FROM
+                                        REPLACE(
+                                            REPLACE(
+                                                JSON_EXTRACT(oi.order_toppings, '$[*].name'),
+                                                '[', ''
+                                            ),
+                                            ']', ''
+                                        )
+                                    )
+                                ),
+                                ''
+                            ),
+                            ' x',
+                            oi.quantity
+                        )
+                        SEPARATOR '\n'
+                    ) as product_details
                 FROM orders o
-                LEFT JOIN products p ON o.product_id = p.id
                 LEFT JOIN tables t ON o.table_id = t.id
+                INNER JOIN order_items oi ON o.id = oi.order_id
+                INNER JOIN products p ON oi.product_id = p.id
                 WHERE o.id = ?
+                GROUP BY 
+                    o.id,
+                    o.order_code,
+                    o.table_id,
+                    o.status,
+                    o.created_at,
+                    t.table_number
             `, [orderId]);
             
-            return order[0];
+            return {
+                ...order[0],
+                product_details: order[0]?.product_details?.split('\n') || []
+            };
         } catch (error) {
             throw error;
         }

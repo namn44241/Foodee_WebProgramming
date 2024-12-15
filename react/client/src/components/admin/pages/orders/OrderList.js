@@ -131,19 +131,20 @@ function OrderList() {
                   <td>Bàn {order.table_number}</td>
                   <td>
                     {order.product_details && Array.isArray(order.product_details) ? (
-                      order.product_details.map((detail, index) => (
-                        <div key={index}>{detail}</div>
-                      ))
+                      order.product_details.map((detail, index) => {
+                        const cleanDetail = detail
+                          .replace(/\[|\]/g, '')
+                          .replace(/"/g, '')
+                          .replace(/\\/g, '');
+
+                        return (
+                          <div key={index} className="product-detail-item">
+                            {cleanDetail}
+                          </div>
+                        );
+                      })
                     ) : (
-                      <div>
-                        {order.product_names && Array.isArray(order.product_names) ? 
-                          order.product_names.map((name, idx) => (
-                            <div key={idx}>
-                              {name} x{order.quantities[idx]}
-                            </div>
-                          )) : 'Không có thông tin sản phẩm'
-                        }
-                      </div>
+                      <div>Không có thông tin sản phẩm</div>
                     )}
                   </td>
                   <td>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.total_amount)}</td>

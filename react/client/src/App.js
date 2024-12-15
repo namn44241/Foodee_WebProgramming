@@ -19,6 +19,7 @@ import AdminProducts from './components/admin/pages/products/AdminProducts.js';
 import AdminCategories from './components/admin/pages/categories/AdminCategories';
 import OrderList from './components/admin/pages/orders/OrderList';
 import { CartProvider } from './contexts/CartContext';
+import TableList from './components/admin/pages/tables/TableList';
 
 
 // Protected Route Component
@@ -82,6 +83,7 @@ function App() {
                   <Route path="products" element={<AdminProducts />} />
                   <Route path="categories" element={<AdminCategories />} /> 
                   <Route path="orders" element={<OrderList />} />
+                  <Route path="tables" element={<TableList />} />
               </Route>
 
         {/* Public Routes */}

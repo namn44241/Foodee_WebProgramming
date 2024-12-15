@@ -38,6 +38,11 @@ function Sidebar() {
                     <i className="fas fa-home"></i>
                     <span>Dashboard</span>
                 </NavLink>
+
+                <NavLink to="/admin/tables" className={({isActive}) => isActive ? 'active' : ''}>
+                    <i className="fas fa-chair"></i>
+                    <span>Bàn ăn</span>
+                </NavLink>
                 
                 <NavLink to="/admin/orders" className={({isActive}) => isActive ? 'active' : ''}>
                     <i className="fas fa-shopping-cart"></i>
@@ -63,6 +68,7 @@ function Sidebar() {
                     <i className="fas fa-cog"></i>
                     <span>Cài đặt</span>
                 </NavLink>
+                
             </nav>
 
             <div className="sidebar-footer">

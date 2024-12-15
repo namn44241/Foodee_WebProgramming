@@ -1,8 +1,11 @@
 import React from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { useCart } from '../../contexts/CartContext';
 
-function CartTable({ cartItems, setCartItems }) {
+function CartTable() {
+  const { cartItems, setCartItems } = useCart();
+
   const calculateToppingTotal = (toppings) => {
     try {
       if (!toppings) return 0;
@@ -12,7 +15,7 @@ function CartTable({ cartItems, setCartItems }) {
       if (!Array.isArray(toppingArray)) return 0;
       
       return toppingArray.reduce((total, topping) => {
-        const price = parseFloat(topping.price_adjustment || topping.price || 0);
+        const price = parseFloat(topping.price_adjustment || 0);
         return total + price;
       }, 0);
     } catch (error) {
@@ -22,44 +25,54 @@ function CartTable({ cartItems, setCartItems }) {
   };
 
   const calculateItemTotal = (item) => {
-    const basePrice = Number(item.base_price) || 0;
-    const toppingTotal = calculateToppingTotal(item.order_toppings);
-    const quantity = Number(item.quantity) || 0;
-    return (basePrice + toppingTotal) * quantity;
+    const basePrice = parseFloat(item.price);
+    const toppingTotal = calculateToppingTotal(item.toppings);
+    const unitPrice = basePrice + toppingTotal;
+    return unitPrice * item.quantity;
   };
 
-  const handleQuantityChange = async (orderId, quantity) => {
+  const consolidateItems = (items) => {
+    const consolidated = {};
+    
+    items.forEach(item => {
+      const toppingsKey = JSON.stringify(item.toppings || []);
+      const key = `${item.productId}-${toppingsKey}`;
+      
+      if (consolidated[key]) {
+        consolidated[key].quantity += item.quantity;
+      } else {
+        consolidated[key] = { ...item };
+      }
+    });
+
+    return Object.values(consolidated);
+  };
+
+  const handleQuantityChange = async (productId, quantity, itemToppings) => {
     try {
       const newQuantity = parseInt(quantity) || 1;
       
-      await axios.put('http://localhost:5001/api/cart/update', {
-        orderId,
-        quantity: newQuantity
-      });
-      
       const updatedItems = cartItems.map(item => {
-        if (item.id === orderId) {
-          const baseTotal = Number(item.base_price) || 0;
-          const toppingTotal = calculateToppingTotal(item.order_toppings);
+        if (item.productId === productId && 
+            JSON.stringify(item.toppings) === JSON.stringify(itemToppings)) {
           return { 
             ...item, 
-            quantity: newQuantity,
-            total_price: (baseTotal + toppingTotal) * newQuantity
+            quantity: newQuantity
           };
         }
         return item;
       });
       
-      setCartItems(updatedItems);
+      setCartItems(consolidateItems(updatedItems));
     } catch (error) {
       console.error('Error updating quantity:', error);
     }
   };
 
-  const handleRemoveItem = async (orderId) => {
+  const handleRemoveItem = async (productId) => {
     try {
-      await axios.delete(`http://localhost:5001/api/cart/item/${orderId}`);
-      setCartItems(cartItems.filter(item => item.id !== orderId));
+      await axios.delete(`http://localhost:5001/api/cart/item/${productId}`);
+      setCartItems(cartItems.filter(item => item.productId !== productId));
       Swal.fire({
         icon: 'success',
         title: 'Đã xóa sản phẩm',
@@ -85,26 +98,25 @@ function CartTable({ cartItems, setCartItems }) {
           </tr>
         </thead>
         <tbody>
-          {cartItems.map(item => {
-            let toppings = [];
-            try {
-              toppings = typeof item.order_toppings === 'string' 
-                ? JSON.parse(item.order_toppings) 
-                : (Array.isArray(item.order_toppings) ? item.order_toppings : []);
-            } catch (e) {
-              console.error('Error parsing toppings:', e);
+          {consolidateItems(cartItems).map(item => {
+            let toppings = item.toppings || [];
+            if (typeof toppings === 'string') {
+              try {
+                toppings = JSON.parse(toppings);
+              } catch (e) {
+                console.error('Error parsing toppings:', e);
+                toppings = [];
+              }
             }
 
-            const basePrice = Number(item.base_price) || 0;
-            const toppingTotal = calculateToppingTotal(item.order_toppings);
+            const basePrice = parseFloat(item.price);
+            const toppingTotal = calculateToppingTotal(toppings);
             const unitPrice = basePrice + toppingTotal;
 
-            console.log('Raw toppings data:', item.toppings);
-
             return (
-              <tr key={item.id} className="table-body-row">
+              <tr key={item.productId + JSON.stringify(toppings)} className="table-body-row">
                 <td className="product-remove">
-                  <button onClick={() => handleRemoveItem(item.id)}>
+                  <button onClick={() => handleRemoveItem(item.productId)}>
                     <i className="far fa-window-close"></i>
                   </button>
                 </td>
@@ -120,7 +132,7 @@ function CartTable({ cartItems, setCartItems }) {
                     <div className="product-toppings">
                       <small>
                         Toppings: {toppings.map(t => {
-                          const price = Number(t.price) || 0;
+                          const price = Number(t.price_adjustment) || 0;
                           return `${t.name} (+${price.toLocaleString('vi-VN')}đ)`;
                         }).join(', ')}
                       </small>
@@ -135,11 +147,11 @@ function CartTable({ cartItems, setCartItems }) {
                     type="number" 
                     value={item.quantity}
                     min="1"
-                    onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                    onChange={(e) => handleQuantityChange(item.productId, e.target.value, toppings)}
                   />
                 </td>
                 <td className="product-total">
-                  {calculateItemTotal(item).toLocaleString('vi-VN')}đ
+                  {(unitPrice * item.quantity).toLocaleString('vi-VN')}đ
                 </td>
               </tr>
             );

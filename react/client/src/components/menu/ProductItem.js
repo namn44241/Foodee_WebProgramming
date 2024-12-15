@@ -28,7 +28,13 @@ function ProductItem({ product }) {
         setSelectedProduct(product);
         setShowToppingModal(true);
       } else {
-        await addToCart(1, product.id, 1);
+        console.log('Adding product:', product);
+        addToCart({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image_name: product.image_name
+        }, 1);
         
         Swal.fire({
           icon: 'success',
@@ -58,7 +64,12 @@ function ProductItem({ product }) {
 
   const handleToppingConfirm = async (quantity, selectedToppings) => {
     try {
-      await addToCart(1, product.id, quantity, selectedToppings);
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image_name: product.image_name
+      }, quantity, selectedToppings);
       
       Swal.fire({
         icon: 'success',

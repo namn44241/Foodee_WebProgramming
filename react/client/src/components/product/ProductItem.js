@@ -20,7 +20,12 @@ function ProductItem({ product }) {
         setShowToppingModal(true);
       } else {
         // Thêm trực tiếp vào giỏ nếu không có topping
-        await addToCart(1, product.id, 1); // tableId hard-coded là 1
+        addToCart({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image_name: product.image_name
+        }, 1);
         
         // Hiển thị thông báo thành công
         Swal.fire({

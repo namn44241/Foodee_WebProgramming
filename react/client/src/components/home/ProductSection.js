@@ -89,7 +89,7 @@ function ProductSection() {
         setSelectedProduct(product);
         setShowToppingModal(true);
       } else {
-        await addToCart(1, product.id, 1);
+        addToCart(product, 1);
         
         Swal.fire({
           icon: 'success',

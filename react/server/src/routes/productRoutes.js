@@ -8,6 +8,7 @@ const { auth, checkRole } = require('../middleware/auth');
 router.get('/public', productController.getProducts);
 router.get('/public/:id', productController.getProductById);
 router.get('/related/:id', productController.getRelatedProducts);
+router.get('/toppings/:productId', productController.getProductToppings);
 
 // Protected routes - yêu cầu auth và quyền admin
 router.get('/', auth, checkRole(['admin']), productController.getAdminProducts);
@@ -20,7 +21,5 @@ router.use(checkRole(['admin']));
 router.post('/', upload.single('image'), processImage, productController.addProduct);
 router.put('/:id', upload.single('image'), processImage, productController.updateProduct);
 router.delete('/:id', productController.deleteProduct);
-
-router.get('/toppings/:productId', productController.getProductToppings);
 
 module.exports = router;

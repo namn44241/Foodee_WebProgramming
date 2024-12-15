@@ -74,63 +74,58 @@ function ProductSection() {
 
   const handleAddToCart = async (product) => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = {
-        Authorization: `Bearer ${token}`
-      };
-
-      const response = await axios.get(
-        `http://localhost:5001/api/products/toppings/${product.id}`,
-        { headers }
-      );
+      const response = await axios.get(`http://localhost:5001/api/products/toppings/${product.id}`);
       
       if (response.data.data.hasToppings) {
         setToppings(response.data.data.toppings);
         setSelectedProduct(product);
         setShowToppingModal(true);
       } else {
-        addToCart(product, 1);
+        addToCart({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image_name: product.image_name,
+          toppings: []
+        }, 1);
         
         Swal.fire({
           icon: 'success',
           title: 'Đã thêm vào giỏ',
-          text: 'Sản phẩm đã được thêm vào giỏ hàng',
           timer: 1500,
           showConfirmButton: false
         });
       }
     } catch (error) {
       console.error('Error:', error);
-      if (error.response && error.response.status === 401) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Chưa đăng nhập',
-          text: 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng'
-        });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Lỗi',
-          text: 'Không thể thêm sản phẩm vào giỏ hàng'
-        });
-      }
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: 'Không thể thêm sản phẩm vào giỏ hàng'
+      });
     }
   };
 
   const handleToppingConfirm = async (quantity, selectedToppings) => {
     try {
-      await addToCart(1, selectedProduct.id, quantity, selectedToppings);
+      addToCart({
+        id: selectedProduct.id,
+        name: selectedProduct.name,
+        price: selectedProduct.price,
+        image_name: selectedProduct.image_name,
+        toppings: selectedToppings
+      }, quantity);
+
       setShowToppingModal(false);
       
       Swal.fire({
         icon: 'success',
         title: 'Đã thêm vào giỏ',
-        text: 'Sản phẩm đã được thêm vào giỏ hàng',
         timer: 1500,
         showConfirmButton: false
       });
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error('Error:', error);
       Swal.fire({
         icon: 'error',
         title: 'Lỗi',

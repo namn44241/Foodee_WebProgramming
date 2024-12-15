@@ -3,7 +3,6 @@ const db = require('../config/database');
 const orderModel = {
     addToCart: async (tableId, productId, quantity, toppings = []) => {
         try {
-
             const [product] = await db.execute(
                 'SELECT * FROM products WHERE id = ?',
                 [productId]
@@ -17,72 +16,59 @@ const orderModel = {
                 ? toppings.reduce((sum, topping) => sum + (Number(topping.price_adjustment) || 0), 0)
                 : 0;
 
-            const [existingOrders] = await db.execute(
-                `SELECT * FROM orders 
-                WHERE table_id = ? 
-                AND product_id = ? 
-                AND status = 'pending'`,
-                [tableId, productId]
+            const [existingOrder] = await db.execute(
+                `SELECT o.id, oi.id as item_id 
+                 FROM orders o
+                 LEFT JOIN order_items oi ON o.id = oi.order_id
+                 WHERE o.table_id = ? AND o.status = 'pending'
+                 LIMIT 1`,
+                [tableId]
             );
 
-            // Tìm order có topping giống hệt
-            const matchingOrder = existingOrders.find(order => {
-
-                const existingToppings = order.order_toppings || [];
-                
-                // So sánh từng topping
-                if (existingToppings.length !== toppings.length) {
-                    return false;
-                }
-                
-                return existingToppings.every(existingTopping => 
-                    toppings.some(newTopping => 
-                        existingTopping.id === newTopping.id &&
-                        existingTopping.name === newTopping.name &&
-                        existingTopping.price_adjustment === newTopping.price_adjustment
-                    )
-                );
-            });
-
-            if (matchingOrder) {
-                // Nếu tìm thấy order trùng, update quantity
-                const newQuantity = matchingOrder.quantity + quantity;
-                
-                await db.execute(
-                    `UPDATE orders 
-                    SET quantity = ?
-                    WHERE id = ?`,
-                    [newQuantity, matchingOrder.id]
-                );
-
-                return { updated: true, orderId: matchingOrder.id };
-            } else {
-                // Nếu không tìm thấy, tạo order mới
+            let orderId;
+            if (!existingOrder.length) {
                 const orderCode = `ORD${Date.now()}`;
-                
-                const [result] = await db.execute(
-                    `INSERT INTO orders (
-                        table_id, 
-                        order_code, 
-                        product_id, 
-                        quantity, 
-                        base_price,
-                        topping_price,
-                        order_toppings
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                    [
-                        tableId,
-                        orderCode,
-                        productId,
-                        quantity,
-                        product[0].price,
-                        toppingTotalPrice,
-                        JSON.stringify(toppings)
-                    ]
+                const [orderResult] = await db.execute(
+                    `INSERT INTO orders (table_id, order_code, total_amount, status) 
+                     VALUES (?, ?, 0, 'pending')`,
+                    [tableId, orderCode]
                 );
-
-                return { updated: false, orderId: result.insertId };
+                orderId = orderResult.insertId;
+            } else {
+                orderId = existingOrder[0].id;
             }
+
+            const [result] = await db.execute(
+                `INSERT INTO order_items (
+                    order_id,
+                    product_id,
+                    quantity,
+                    base_price,
+                    topping_price,
+                    order_toppings
+                ) VALUES (?, ?, ?, ?, ?, ?)`,
+                [
+                    orderId,
+                    productId,
+                    quantity,
+                    product[0].price,
+                    toppingTotalPrice,
+                    JSON.stringify(toppings)
+                ]
+            );
+
+            await db.execute(
+                `UPDATE orders o 
+                 SET total_amount = (
+                     SELECT SUM(total_price) 
+                     FROM order_items 
+                     WHERE order_id = o.id
+                 )
+                 WHERE id = ?`,
+                [orderId]
+            );
+
+            return { orderId, itemId: result.insertId };
         } catch (error) {
             throw error;
         }
@@ -91,14 +77,18 @@ const orderModel = {
     getCartItems: async (tableId) => {
         try {
             const [items] = await db.execute(
-                `SELECT o.*, p.name, p.image_name, 
-                        o.base_price as price,
-                        o.total_price as total_amount,
-                        o.order_toppings
+                `SELECT 
+                    oi.*,
+                    p.name,
+                    p.image_name,
+                    o.order_code,
+                    oi.base_price as price,
+                    oi.total_price as total_amount
                 FROM orders o
-                JOIN products p ON o.product_id = p.id
+                JOIN order_items oi ON o.id = oi.order_id
+                JOIN products p ON oi.product_id = p.id
                 WHERE o.table_id = ? AND o.status = 'pending'
-                ORDER BY o.created_at DESC`,
+                ORDER BY oi.id DESC`,
                 [tableId]
             );
             return items;
@@ -144,120 +134,101 @@ const orderModel = {
     },
 
     createOrder: async (tableId, products) => {
+        const connection = await db.getConnection();
         try {
-            const orderCode = `ORD${Date.now()}`;
-            const connection = await db.getConnection();
             await connection.beginTransaction();
 
-            try {
-                console.log('Creating order with products:', products);
+            // 1. Tạo đơn hàng mới
+            const orderCode = `ORD${Date.now()}`;
+            const totalAmount = products.reduce((sum, product) => 
+                sum + (product.quantity * (product.base_price + (product.topping_price || 0))), 0);
 
-                if (!Array.isArray(products)) {
-                    products = [products];
-                }
+            const [orderResult] = await connection.execute(
+                `INSERT INTO orders (table_id, order_code, total_amount, status) 
+                 VALUES (?, ?, ?, 'pending')`,
+                [tableId, orderCode, totalAmount]
+            );
 
-                // Thêm từng sản phẩm vào đơn hàng
-                for (const product of products) {
-                    const { 
+            const orderId = orderResult.insertId;
+
+            // 2. Thêm từng sản phẩm vào order_items
+            for (const product of products) {
+                await connection.execute(
+                    `INSERT INTO order_items (
+                        order_id, 
                         product_id, 
                         quantity, 
                         base_price, 
-                        topping_price = 0, 
-                        note = '', 
-                        order_toppings = null 
-                    } = product;
-
-                    await connection.execute(
-                        `INSERT INTO orders (
-                            table_id, 
-                            order_code, 
-                            product_id, 
-                            quantity, 
-                            base_price, 
-                            topping_price, 
-                            note, 
-                            order_toppings,
-                            status
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-                        [
-                            tableId,
-                            orderCode,
-                            product_id,
-                            quantity,
-                            base_price,
-                            topping_price,
-                            note,
-                            order_toppings ? JSON.stringify(order_toppings) : null
-                        ]
-                    );
-                }
-
-                // Cập nhật trạng thái bàn
-                await connection.execute(
-                    'UPDATE tables SET status = "occupied" WHERE id = ?',
-                    [tableId]
+                        topping_price,
+                        order_toppings
+                    ) VALUES (?, ?, ?, ?, ?, ?)`,
+                    [
+                        orderId,
+                        product.product_id,
+                        product.quantity,
+                        product.base_price,
+                        product.topping_price || 0,
+                        JSON.stringify(product.order_toppings || [])
+                    ]
                 );
-
-                await connection.commit();
-                connection.release();
-                return { order_code: orderCode };
-            } catch (err) {
-                await connection.rollback();
-                connection.release();
-                throw err;
             }
+
+            await connection.commit();
+            return { order_id: orderId, order_code: orderCode };
+
         } catch (error) {
+            await connection.rollback();
             throw error;
+        } finally {
+            connection.release();
         }
     },
 
     getAllOrders: async () => {
         try {
-            console.log('Executing getAllOrders query...');
-            
             const [orders] = await db.execute(`
                 SELECT 
                     o.id,
                     o.order_code,
                     o.table_id,
-                    o.product_id,
-                    o.quantity,
-                    o.base_price,
-                    o.topping_price,
-                    o.total_price,
+                    o.total_amount,
                     o.status,
-                    o.note,
-                    o.order_toppings,
                     o.created_at,
-                    p.name as product_name,
                     t.table_number,
-                    p.image_name
+                    GROUP_CONCAT(
+                        CONCAT(
+                            p.name,
+                            CASE 
+                                WHEN oi.order_toppings != '[]' 
+                                THEN CONCAT(' - ', 
+                                    REPLACE(
+                                        REPLACE(
+                                            JSON_EXTRACT(oi.order_toppings, '$[0].name'),
+                                            '"', ''
+                                        ),
+                                        '\\\\', ''
+                                    )
+                                )
+                                ELSE ''
+                            END,
+                            ' x',
+                            oi.quantity
+                        )
+                    ) as product_details
                 FROM orders o
-                LEFT JOIN products p ON o.product_id = p.id
                 LEFT JOIN tables t ON o.table_id = t.id
+                LEFT JOIN order_items oi ON o.id = oi.order_id
+                LEFT JOIN products p ON oi.product_id = p.id
+                GROUP BY o.id
                 ORDER BY o.created_at DESC
             `);
-
-            // Format lại dữ liệu một cách an toàn
-            const formattedOrders = orders.map(order => {
-                let parsedToppings = [];
-                if (order.order_toppings && order.order_toppings !== '[]') {
-                    try {
-                        parsedToppings = JSON.parse(order.order_toppings);
-                    } catch (e) {
-                        console.log('Invalid order_toppings format:', order.order_toppings);
-                    }
-                }
-
-                return {
-                    ...order,
-                    order_toppings: parsedToppings
-                };
-            });
             
-            return formattedOrders;
+            return orders.map(order => ({
+                ...order,
+                product_details: order.product_details ? 
+                    order.product_details.split(',') : []
+            }));
         } catch (error) {
-            console.error('Database error in getAllOrders:', error);
             throw error;
         }
     },

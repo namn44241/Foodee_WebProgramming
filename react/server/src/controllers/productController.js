@@ -7,15 +7,35 @@ const productController = {
     getAdminProducts: async (req, res) => {
         try {
             const [rows] = await db.execute(`
-                SELECT p.*, c.name as category_name 
+                SELECT 
+                    p.*,
+                    c.name as category_name,
+                    GROUP_CONCAT(
+                        JSON_OBJECT(
+                            'id', o.id,
+                            'name', o.name,
+                            'price_adjustment', o.price_adjustment
+                        )
+                    ) as options
                 FROM products p 
                 LEFT JOIN categories c ON p.category_id = c.id
+                LEFT JOIN product_options po ON p.id = po.product_id
+                LEFT JOIN options o ON po.option_id = o.id
+                GROUP BY p.id
                 ORDER BY p.created_at DESC
             `);
+
+            // Parse options string thành JSON
+            const productsWithOptions = rows.map(product => ({
+                ...product,
+                options: product.options 
+                    ? JSON.parse(`[${product.options}]`.replace(/\\/g, ''))
+                    : []
+            }));
             
             res.json({
                 success: true,
-                data: rows
+                data: productsWithOptions
             });
         } catch (error) {
             console.error('Error getting products:', error);

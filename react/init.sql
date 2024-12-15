@@ -44,25 +44,31 @@ CREATE TABLE tables (
     is_active BOOLEAN DEFAULT true
 );
 
--- Bảng Orders
+-- Bảng Orders (sau khi alter)
 CREATE TABLE orders (
     id INT PRIMARY KEY AUTO_INCREMENT,
     table_id INT NOT NULL,
     order_code VARCHAR(50) UNIQUE NOT NULL,
-    product_id INT NOT NULL,
-    quantity INT NOT NULL DEFAULT 1,
-    base_price DECIMAL(10,2) NOT NULL, -- Giá gốc sản phẩm
-    topping_price DECIMAL(10,2) DEFAULT 0, -- Giá topping
-    total_price DECIMAL(10,2) GENERATED ALWAYS AS (quantity * (base_price + topping_price)) STORED, -- Tổng tiền
+    total_amount DECIMAL(10,2) NOT NULL,
     status ENUM('pending', 'completed') DEFAULT 'pending',
     note TEXT,
-    order_toppings JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (table_id) REFERENCES tables(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    FOREIGN KEY (table_id) REFERENCES tables(id)
 );
 
-ALTER TABLE orders ADD COLUMN order_toppings JSON AFTER note;
+-- Bảng Order_Items (bảng mới)
+CREATE TABLE order_items (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    base_price DECIMAL(10,2) NOT NULL,
+    topping_price DECIMAL(10,2) DEFAULT 0,
+    total_price DECIMAL(10,2) GENERATED ALWAYS AS (quantity * (base_price + topping_price)) STORED,
+    order_toppings JSON,
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
 
 -- Tách thông tin options ra riêng
 CREATE TABLE options (

@@ -113,34 +113,46 @@ function OrderList() {
               <th>Mã đơn</th>
               <th>Bàn</th>
               <th>Sản phẩm</th>
-              <th>Số lượng</th>
               <th>Tổng tiền</th>
               <th>Trạng thái</th>
               <th>Thời gian</th>
-              <th>Ghi chú</th>
               <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
             {orders.length === 0 ? (
               <tr>
-                <td colSpan="8" className="text-center">Không có đơn hàng nào</td>
+                <td colSpan="7" className="text-center">Không có đơn hàng nào</td>
               </tr>
             ) : (
               orders.map(order => (
                 <tr key={order.id}>
                   <td>{order.order_code}</td>
                   <td>Bàn {order.table_number}</td>
-                  <td>{order.product_name}</td>
-                  <td>{order.quantity}</td>
-                  <td>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.total_price)}</td>
+                  <td>
+                    {order.product_details && Array.isArray(order.product_details) ? (
+                      order.product_details.map((detail, index) => (
+                        <div key={index}>{detail}</div>
+                      ))
+                    ) : (
+                      <div>
+                        {order.product_names && Array.isArray(order.product_names) ? 
+                          order.product_names.map((name, idx) => (
+                            <div key={idx}>
+                              {name} x{order.quantities[idx]}
+                            </div>
+                          )) : 'Không có thông tin sản phẩm'
+                        }
+                      </div>
+                    )}
+                  </td>
+                  <td>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.total_amount)}</td>
                   <td>
                     <span className={`status-tag ${order.status}`}>
                       {order.status}
                     </span>
                   </td>
                   <td>{new Date(order.created_at).toLocaleString('vi-VN')}</td>
-                  <td>{order.note || '-'}</td>
                   <td className="action-buttons">
                     <button className="edit-btn" onClick={() => handleViewOrder(order)}>
                       <i className="fas fa-eye"></i>

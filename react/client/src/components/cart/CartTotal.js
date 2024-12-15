@@ -1,44 +1,94 @@
 import React from 'react';
+import { useCart } from '../../contexts/CartContext';
 import { Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import axios from 'axios';
 
-function CartTotal({ cartItems }) {
+function CartTotal() {
+  const { cartItems, setCartItems } = useCart();
+
   const calculateTotal = () => {
-    return cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    return cartItems.reduce((sum, item) => {
+      const basePrice = parseFloat(item.price);
+      const toppingTotal = item.toppings ? item.toppings.reduce((t, topping) => 
+        t + (parseFloat(topping.price_adjustment) || 0), 0) : 0;
+      return sum + ((basePrice + toppingTotal) * item.quantity);
+    }, 0);
+  };
+
+  const handleCheckout = async () => {
+    try {
+      const result = await Swal.fire({
+        title: 'Xác nhận thanh toán',
+        text: `Tổng số tiền: ${calculateTotal().toLocaleString('vi-VN')}đ`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Hủy'
+      });
+
+      if (result.isConfirmed) {
+        const orderData = {
+          tableId: 1,
+          products: cartItems.map(item => {
+            const toppingTotal = item.toppings ? item.toppings.reduce((sum, t) => 
+              sum + (parseFloat(t.price_adjustment) || 0), 0) : 0;
+            
+            return {
+              product_id: item.productId,
+              quantity: item.quantity,
+              base_price: parseFloat(item.price),
+              topping_price: toppingTotal,
+              order_toppings: item.toppings || []
+            };
+          })
+        };
+
+        console.log('Sending order data:', orderData);
+        const response = await axios.post('http://localhost:5001/api/orders/add', orderData);
+
+        if (response.data.success) {
+          await Swal.fire({
+            title: 'Thanh toán thành công!',
+            text: 'Cảm ơn bạn đã đặt hàng',
+            icon: 'success',
+            timer: 2000
+          });
+          
+          setCartItems([]);
+        }
+      }
+    } catch (error) {
+      console.error('Error during checkout:', error);
+      Swal.fire({
+        title: 'Lỗi',
+        text: 'Không thể hoàn tất thanh toán',
+        icon: 'error'
+      });
+    }
   };
 
   return (
-    <>
-      <div className="total-section">
-        <table className="total-table">
-          <thead className="total-table-head">
-            <tr className="table-total-row">
-              <th>Tổng cộng</th>
-              <th>Giá tiền</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="total-data">
-              <td><strong>Tổng tiền: </strong></td>
-              <td>{calculateTotal().toLocaleString('vi-VN')}đ</td>
-            </tr>
-          </tbody>
-        </table>
-        <div className="cart-buttons">
-          <Link to="/menu" className="boxed-btn">Tiếp tục đặt món</Link>
-          <Link to="/checkout" className="boxed-btn black">Thanh toán</Link>
-        </div>
+    <div className="total-section">
+      <table className="total-table">
+        <thead className="total-table-head">
+          <tr className="table-total-row">
+            <th>Tổng cộng</th>
+            <th>Giá tiền</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr className="total-data">
+            <td><strong>Tổng tiền: </strong></td>
+            <td>{calculateTotal().toLocaleString('vi-VN')}đ</td>
+          </tr>
+        </tbody>
+      </table>
+      <div className="cart-buttons">
+        <Link to="/menu" className="boxed-btn">Tiếp tục đặt món</Link>
+        <Link onClick={handleCheckout} className="boxed-btn black">Thanh toán</Link>
       </div>
-
-      <div className="coupon-section">
-        <h3>Mã giảm giá</h3>
-        <div className="coupon-form-wrap">
-          <form>
-            <p><input type="text" placeholder="Nhập mã giảm giá" /></p>
-            <p><input type="submit" value="Áp dụng" /></p>
-          </form>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
 

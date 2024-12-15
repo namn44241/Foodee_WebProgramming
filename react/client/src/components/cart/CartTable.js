@@ -69,10 +69,13 @@ function CartTable() {
     }
   };
 
-  const handleRemoveItem = async (productId) => {
+  const handleRemoveItem = async (productId, toppings) => {
     try {
-      await axios.delete(`http://localhost:5001/api/cart/item/${productId}`);
-      setCartItems(cartItems.filter(item => item.productId !== productId));
+      setCartItems(cartItems.filter(item => 
+        !(item.productId === productId && 
+          JSON.stringify(item.toppings) === JSON.stringify(toppings))
+      ));
+      
       Swal.fire({
         icon: 'success',
         title: 'Đã xóa sản phẩm',
@@ -116,8 +119,19 @@ function CartTable() {
             return (
               <tr key={item.productId + JSON.stringify(toppings)} className="table-body-row">
                 <td className="product-remove">
-                  <button onClick={() => handleRemoveItem(item.productId)}>
-                    <i className="far fa-window-close"></i>
+                  <button onClick={() => handleRemoveItem(item.productId, item.toppings)} 
+                          className="remove-btn"
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#dc3545', // màu đỏ bootstrap
+                            cursor: 'pointer',
+                            padding: '8px',
+                            borderRadius: '4px',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                          }}>
+                    <i className="far fa-trash-alt"></i>
                   </button>
                 </td>
                 <td className="product-image">

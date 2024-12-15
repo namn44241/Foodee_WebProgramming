@@ -28,9 +28,9 @@ const DashboardController = {
                 'SELECT COUNT(*) as total FROM orders'
             );
 
-            // Tính tổng doanh thu từ đơn hàng completed - sửa thành total_price
+            // Tính tổng doanh thu từ đơn hàng completed - sửa thành total_amount
             const [revenue] = await db.query(
-                'SELECT SUM(total_price) as total FROM orders WHERE status = "completed"'
+                'SELECT SUM(total_amount) as total FROM orders WHERE status = "completed"'
             );
 
             res.json({

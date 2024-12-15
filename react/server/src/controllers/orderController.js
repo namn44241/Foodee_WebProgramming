@@ -6,36 +6,36 @@ const orderController = {
     addOrder: async (req, res) => {
         try {
             console.log('Request body:', req.body);
-            const { tableId, productId, quantity, toppings } = req.body;
+            const { tableId, products } = req.body;
 
-            // Lấy thông tin sản phẩm để lấy giá
-            const [product] = await db.execute(
-                'SELECT * FROM products WHERE id = ?',
-                [productId]
-            );
-
-            if (!product || product.length === 0) {
-                return error(res, 'Sản phẩm không tồn tại');
+            if (!tableId || !products || !Array.isArray(products)) {
+                return error(res, 'Dữ liệu đơn hàng không hợp lệ');
             }
 
-            // Tính tổng giá topping
-            const toppingTotalPrice = Array.isArray(toppings) 
-                ? toppings.reduce((sum, topping) => sum + (Number(topping.price_adjustment) || 0), 0)
-                : 0;
+            // Xử lý từng sản phẩm trong đơn hàng
+            const processedProducts = await Promise.all(products.map(async (product) => {
+                const [productInfo] = await db.execute(
+                    'SELECT * FROM products WHERE id = ?',
+                    [product.product_id]
+                );
 
-            // Chuyển đổi format dữ liệu
-            const orderData = {
-                table_id: tableId,
-                products: [{
-                    product_id: productId,
-                    quantity: quantity,
-                    base_price: product[0].price,
-                    topping_price: toppingTotalPrice,
-                    order_toppings: toppings
-                }]
-            };
+                if (!productInfo || productInfo.length === 0) {
+                    throw new Error(`Sản phẩm ${product.product_id} không tồn tại`);
+                }
 
-            const result = await orderModel.createOrder(orderData.table_id, orderData.products);
+                const toppingTotalPrice = Array.isArray(product.order_toppings) 
+                    ? product.order_toppings.reduce((sum, topping) => 
+                        sum + (Number(topping.price_adjustment) || 0), 0)
+                    : 0;
+
+                return {
+                    ...product,
+                    base_price: productInfo[0].price,
+                    topping_price: toppingTotalPrice
+                };
+            }));
+
+            const result = await orderModel.createOrder(tableId, processedProducts);
             return success(res, 'Đơn hàng đã được tạo thành công', result);
         } catch (err) {
             console.error('Error in addOrder:', err);

@@ -125,6 +125,15 @@ function OrderForm({ onClose }) {
     return (product.price + toppingTotal) * quantity;
   };
 
+  const calculateTotal = () => {
+    return orderItems.reduce((total, item) => {
+      const basePrice = parseFloat(item.product.price) || 0;
+      const toppingTotal = item.toppings.reduce((sum, topping) => 
+        sum + (parseFloat(topping.price_adjustment) || 0), 0);
+      return total + ((basePrice + toppingTotal) * item.quantity);
+    }, 0);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!tableNumber || orderItems.length === 0) {
@@ -133,18 +142,35 @@ function OrderForm({ onClose }) {
     }
 
     try {
-      // Gửi từng món một
-      for (const item of orderItems) {
-        await axios.post('http://localhost:5001/api/orders/add', {
-          tableId: tableNumber,
-          productId: item.product.id,
-          quantity: item.quantity,
-          toppings: item.toppings
-        });
-      }
+      // Tạo cấu trúc dữ liệu giống như trong CartTotal
+      const orderData = {
+        tableId: tableNumber,
+        products: orderItems.map(item => {
+          const toppingTotal = item.toppings.reduce((sum, topping) => 
+            sum + (parseFloat(topping.price_adjustment) || 0), 0);
 
-      Swal.fire('Thành công', 'Đã thêm đơn hàng mới', 'success');
-      onClose();
+          return {
+            product_id: item.product.id,
+            quantity: item.quantity,
+            base_price: parseFloat(item.product.price),
+            topping_price: toppingTotal,
+            order_toppings: item.toppings || []
+          };
+        })
+      };
+
+      // Gửi một request duy nhất với tất cả sản phẩm
+      const response = await axios.post('http://localhost:5001/api/orders/add', orderData);
+
+      if (response.data.success) {
+        await Swal.fire({
+          title: 'Thành công',
+          text: 'Đã thêm đơn hàng mới',
+          icon: 'success',
+          timer: 2000
+        });
+        onClose();
+      }
     } catch (error) {
       console.error('Error adding order:', error);
       Swal.fire('Lỗi', 'Không thể thêm đơn hàng', 'error');
@@ -193,9 +219,11 @@ function OrderForm({ onClose }) {
           <div className="order-total">
             <strong>Tổng cộng: </strong>
             <span>
-              {new Intl.NumberFormat('vi-VN').format(
-                orderItems.reduce((sum, item) => sum + item.total, 0)
-              )}đ
+              {new Intl.NumberFormat('vi-VN', { 
+                style: 'currency', 
+                currency: 'VND',
+                maximumFractionDigits: 0 
+              }).format(calculateTotal())}
             </span>
           </div>
         </div>

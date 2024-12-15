@@ -66,7 +66,7 @@ function ProductDetail() {
       };
 
       const response = await axios.get(
-        `http://localhost:5001/api/products/toppings/${id}`,
+        `http://localhost:5001/api/products/toppings/${product.id}`,
         { headers }
       );
       
@@ -74,7 +74,12 @@ function ProductDetail() {
         setToppings(response.data.data.toppings);
         setShowToppingModal(true);
       } else {
-        await addToCart(1, product.id, quantity);
+        addToCart({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image_name: product.image_name
+        }, quantity);
         
         Swal.fire({
           icon: 'success',
@@ -104,7 +109,14 @@ function ProductDetail() {
 
   const handleToppingConfirm = async (qty, selectedToppings) => {
     try {
-      await addToCart(1, product.id, qty, selectedToppings);
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image_name: product.image_name
+      }, qty, selectedToppings);
+      
+      setShowToppingModal(false);
       
       Swal.fire({
         icon: 'success',

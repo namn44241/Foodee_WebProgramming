@@ -26,9 +26,10 @@ export function CartProvider({ children }) {
 
     if (existingItem) {
       const updatedItems = cartItems.map(item =>
-        item.productId === product.id ? 
-        {...item, quantity: item.quantity + quantity} : 
-        item
+        (item.productId === product.id && 
+         JSON.stringify(item.toppings) === JSON.stringify(toppings))
+          ? {...item, quantity: item.quantity + quantity} 
+          : item
       );
       setCartItems(updatedItems);
     } else {

@@ -8,30 +8,28 @@ import Swal from 'sweetalert2';
 function ProductItem({ product }) {
   const [showToppingModal, setShowToppingModal] = useState(false);
   const [toppings, setToppings] = useState([]);
-  const { addToCart } = useCart();
+  const { cartItems, addToCart } = useCart();
 
   const handleAddToCart = async () => {
     try {
-      // Kiểm tra sản phẩm có topping không
       const response = await axios.get(`http://localhost:5001/api/products/toppings/${product.id}`);
       
       if (response.data.data.hasToppings) {
         setToppings(response.data.data.toppings);
         setShowToppingModal(true);
       } else {
-        // Thêm trực tiếp vào giỏ nếu không có topping
+        // Thêm sản phẩm không có topping
         addToCart({
           id: product.id,
           name: product.name,
           price: product.price,
-          image_name: product.image_name
+          image_name: product.image_name,
+          toppings: [] // Thêm mảng toppings rỗng
         }, 1);
         
-        // Hiển thị thông báo thành công
         Swal.fire({
           icon: 'success',
           title: 'Đã thêm vào giỏ',
-          text: 'Sản phẩm đã được thêm vào giỏ hàng',
           timer: 1500,
           showConfirmButton: false
         });
@@ -48,18 +46,25 @@ function ProductItem({ product }) {
 
   const handleToppingConfirm = async (quantity, selectedToppings) => {
     try {
-      await addToCart(1, product.id, quantity, selectedToppings);
+      // Thêm sản phẩm với topping đã chọn
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image_name: product.image_name,
+        toppings: selectedToppings // Thêm topping đã chọn
+      }, quantity);
+
+      setShowToppingModal(false);
       
-      // Hiển thị thông báo thành công
       Swal.fire({
         icon: 'success',
         title: 'Đã thêm vào giỏ',
-        text: 'Sản phẩm đã được thêm vào giỏ hàng',
         timer: 1500,
         showConfirmButton: false
       });
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error('Error:', error);
       Swal.fire({
         icon: 'error',
         title: 'Lỗi',

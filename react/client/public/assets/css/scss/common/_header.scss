@@ -10,17 +10,18 @@ ul.navbar-nav li.nav-item {
 }
 
 .top-header-area {
-  position: fixed; /* Thay đổi từ absolute thành fixed */
-  z-index: 9999; /* Tăng z-index lên cao hơn */
+  position: absolute;
+  z-index: 999;
   width: 100%;
   padding: 25px 0;
-  transition: all 0.2s ease-out;
-  background-color: transparent; /* Thêm background transparent ban đầu */
+  background-color: transparent;
+  transition: all 0.3s ease;
 
   &.stick {
+    position: fixed;
     background-color: #051922;
     padding: 15px 0;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
 }
 

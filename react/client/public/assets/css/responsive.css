@@ -577,3 +577,9 @@
 	    display: block;
 	}
 }
+/* Mobile Layout: 767px. */
+@media only screen and (max-width: 767px) {
+    .homepage-slider .owl-nav {
+        display: none !important;
+    }
+}

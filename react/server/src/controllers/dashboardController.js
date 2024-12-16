@@ -18,9 +18,9 @@ const DashboardController = {
                 'SELECT COUNT(*) as total FROM products WHERE is_available = true'
             );
 
-            // Đếm số bàn đang active
+            // Đếm số bàn đang available (thay vì is_active)
             const [tableCount] = await db.query(
-                'SELECT COUNT(*) as total FROM tables WHERE is_active = true'
+                'SELECT COUNT(*) as total FROM tables WHERE status = "available"'
             );
 
             // Đếm tổng số đơn hàng
@@ -28,7 +28,7 @@ const DashboardController = {
                 'SELECT COUNT(*) as total FROM orders'
             );
 
-            // Tính tổng doanh thu từ đơn hàng completed - sửa thành total_amount
+            // Tính tổng doanh thu từ đơn hàng completed
             const [revenue] = await db.query(
                 'SELECT SUM(total_amount) as total FROM orders WHERE status = "completed"'
             );

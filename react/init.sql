@@ -40,8 +40,8 @@ CREATE TABLE tables (
     id INT PRIMARY KEY AUTO_INCREMENT,
     table_number VARCHAR(20) UNIQUE NOT NULL,
     qr_code VARCHAR(255) UNIQUE,
-    status ENUM('available', 'occupied') DEFAULT 'available',
-    is_active BOOLEAN DEFAULT true
+    status ENUM('available', 'maintenance') DEFAULT 'available',
+    position INT DEFAULT NULL
 );
 
 -- Bảng Orders (sau khi alter)

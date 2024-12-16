@@ -22,6 +22,7 @@ import { CartProvider } from './contexts/CartContext';
 import TableList from './components/admin/pages/tables/TableList';
 import { TableProvider } from './contexts/TableContext';
 import TableRedirect from './components/table/TableRedirect';
+import AdminStaff from './components/admin/pages/staff/AdminStaff';
 
 
 // Protected Route Component
@@ -87,6 +88,7 @@ function App() {
                     <Route path="categories" element={<AdminCategories />} /> 
                     <Route path="orders" element={<OrderList />} />
                     <Route path="tables" element={<TableList />} />
+                    <Route path="staff" element={<AdminStaff />} />
                 </Route>
 
           {/* Public Routes */}

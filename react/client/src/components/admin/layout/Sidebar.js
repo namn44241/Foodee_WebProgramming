@@ -59,9 +59,9 @@ function Sidebar() {
                     <span>Danh mục</span>
                 </NavLink>
                 
-                <NavLink to="/admin/customers" className={({isActive}) => isActive ? 'active' : ''}>
-                    <i className="fas fa-users"></i>
-                    <span>Khách hàng</span>
+                <NavLink to="/admin/staff" className={({isActive}) => isActive ? 'active' : ''}>
+                    <i className="fas fa-user-tie"></i>
+                    <span>Nhân viên</span>
                 </NavLink>
                 
                 <NavLink to="/admin/settings" className={({isActive}) => isActive ? 'active' : ''}>

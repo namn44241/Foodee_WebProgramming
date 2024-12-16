@@ -1,6 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement
+} from 'chart.js';
+import { Bar, Pie } from 'react-chartjs-2';
 import './Dashboard.css';
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    ArcElement
+);
 
 function Dashboard() {
     const username = localStorage.getItem('username');
@@ -10,32 +31,37 @@ function Dashboard() {
         products: 0,
         tables: 0,
         orders: 0,
-        revenue: 0
+        revenue: 0,
+        revenueByMonth: [],
+        topProducts: []
     });
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
                 const token = localStorage.getItem('token');
-                console.log('Using token:', token); // Thêm log token
-    
+                console.log('Fetching stats with token:', token);
+
                 const response = await axios.get('http://localhost:5001/api/dashboard/stats', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
                 
-                console.log('Stats response:', response.data); // Thêm log response
+                console.log('Raw response:', response);
                 
                 if (response.data.success) {
+                    console.log('Setting stats:', response.data.data);
                     setStats(response.data.data);
                 }
             } catch (error) {
                 console.error('Error fetching stats:', error);
-                console.log('Error response:', error.response); // Thêm log error
+                if (error.response) {
+                    console.log('Error response:', error.response.data);
+                }
             }
         };
-    
+
         fetchStats();
     }, []);
     
@@ -45,6 +71,32 @@ function Dashboard() {
             style: 'currency',
             currency: 'VND'
         }).format(amount);
+    };
+
+    const revenueChartData = {
+        labels: stats.revenueByMonth?.map(item => item.month) || [],
+        datasets: [{
+            label: 'Doanh thu theo tháng',
+            data: stats.revenueByMonth?.map(item => item.revenue) || [],
+            backgroundColor: 'rgba(242, 129, 35, 0.5)',
+            borderColor: 'rgb(242, 129, 35)',
+            borderWidth: 1
+        }]
+    };
+
+    const topProductsData = {
+        labels: stats.topProducts?.map(item => item.name) || [],
+        datasets: [{
+            label: 'Sản phẩm bán chạy',
+            data: stats.topProducts?.map(item => item.total_sold) || [],
+            backgroundColor: [
+                '#FF6384',
+                '#36A2EB',
+                '#FFCE56',
+                '#4BC0C0',
+                '#9966FF'
+            ]
+        }]
     };
 
     return (
@@ -84,6 +136,58 @@ function Dashboard() {
                     <i className="fas fa-dollar-sign"></i>
                     <h3>Doanh thu</h3>
                     <p>{formatCurrency(stats.revenue)}</p>
+                </div>
+            </div>
+            
+            <div className="dashboard-charts">
+                <div className="chart-container">
+                    <h3>Doanh thu theo tháng</h3>
+                    <Bar 
+                        data={revenueChartData} 
+                        options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Biểu đồ doanh thu'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return new Intl.NumberFormat('vi-VN', {
+                                                style: 'currency',
+                                                currency: 'VND',
+                                                maximumFractionDigits: 0
+                                            }).format(value);
+                                        }
+                                    }
+                                }
+                            }
+                        }} 
+                    />
+                </div>
+                
+                <div className="chart-container">
+                    <h3>Top sản phẩm bán chạy</h3>
+                    <Pie 
+                        data={topProductsData} 
+                        options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'right',
+                                }
+                            }
+                        }} 
+                    />
                 </div>
             </div>
         </div>

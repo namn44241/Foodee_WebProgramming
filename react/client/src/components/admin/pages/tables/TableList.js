@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
 import QRCode from 'qrcode';
 import qrTemplate from '../../../../assets/images/qr-template.png';
 
-const QRModalComponent = ({ tableId, onClose }) => {
+const QRModalComponent = ({ tableId, onClose, tables }) => {
     const [mergedImage, setMergedImage] = useState('');
     const [isClosing, setIsClosing] = useState(false);
     const qrValue = `http://localhost:6868/table/${tableId}`;
@@ -13,29 +13,33 @@ const QRModalComponent = ({ tableId, onClose }) => {
     useEffect(() => {
         const generateMergedImage = async () => {
             try {
-                // Tạo canvas
                 const canvas = document.createElement('canvas');
                 canvas.width = 1414;
                 canvas.height = 2000;
                 const ctx = canvas.getContext('2d');
 
-                // Load template
                 const template = new Image();
                 template.src = qrTemplate;
                 
                 await new Promise((resolve) => {
                     template.onload = () => {
-                        // Vẽ template
                         ctx.drawImage(template, 0, 0, 1414, 2000);
                         
-                        // Tạo QR code trên canvas tạm thời
                         const qrCanvas = document.createElement('canvas');
                         QRCode.toCanvas(qrCanvas, qrValue, {
                             width: 650,
                             margin: 0
                         }, () => {
-                            // Vẽ QR code vào vị trí mong muốn trên template
-                            ctx.drawImage(qrCanvas, 380, 790); // x=(1414-400)/2, y=800 (có thể điều chỉnh)
+                            ctx.drawImage(qrCanvas, 380, 790);
+
+                            const table = tables.find(t => t.id === tableId);
+                            if (table) {
+                                ctx.font = 'bold 80px Arial';
+                                ctx.fillStyle = '#000000';
+                                ctx.textAlign = 'center';
+                                ctx.fillText(`Bàn ${table.table_number}`, 705, 1610);
+                            }
+
                             setMergedImage(canvas.toDataURL());
                             resolve();
                         });
@@ -47,7 +51,7 @@ const QRModalComponent = ({ tableId, onClose }) => {
         };
         
         generateMergedImage();
-    }, [qrValue]);
+    }, [qrValue, tableId, tables]);
 
     const handleClose = () => {
         setIsClosing(true);
@@ -448,6 +452,7 @@ function TableList() {
         <QRModalComponent 
           tableId={selectedTableId}
           onClose={handleCloseQR}
+          tables={tables}
         />
       )}
     </div>

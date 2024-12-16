@@ -2,10 +2,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
+import { useTable } from '../../contexts/TableContext';
+import './Header.css';
 
 function Header() {
     const [isSticky, setIsSticky] = useState(false);
     const { cartCount } = useCart();
+    const { currentTableId, tableName } = useTable();
 
     useEffect(() => {
       const handleScroll = () => {
@@ -32,6 +35,12 @@ function Header() {
                   <img src="assets/img/logo.png" alt="" />
                 </Link>
               </div>
+              {currentTableId && (
+                <div className="table-info">
+                  <span className="table-label">Bàn:</span>
+                  <span className="table-number">{tableName}</span>
+                </div>
+              )}
               <nav className="main-menu">
                 <ul>
                   <li><NavLink to="/" className={({isActive}) => isActive ? "current-list-item" : ""}>

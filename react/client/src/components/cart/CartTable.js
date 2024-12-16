@@ -92,7 +92,43 @@ function CartTable() {
       <table className="cart-table">
         <thead className="cart-table-head">
           <tr className="table-head-row">
-            <th className="product-remove"></th>
+            <th className="product-remove">
+              <button 
+                onClick={() => {
+                  Swal.fire({
+                    title: 'Xác nhận xóa?',
+                    text: "Bạn có chắc muốn xóa tất cả sản phẩm trong giỏ hàng?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Xóa tất cả',
+                    cancelButtonText: 'Hủy'
+                  }).then((result) => {
+                    if (result.isConfirmed) {
+                      setCartItems([]);
+                      Swal.fire(
+                        'Đã xóa!',
+                        'Giỏ hàng đã được xóa.',
+                        'success'
+                      );
+                    }
+                  });
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#dc3545',
+                  cursor: 'pointer',
+                  padding: '8px',
+                  borderRadius: '4px',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}
+              >
+                <i className="fas fa-trash-alt"></i>
+              </button>
+            </th>
             <th className="product-image">Hình ảnh</th>
             <th className="product-name">Tên món</th>
             <th className="product-price">Đơn giá</th>

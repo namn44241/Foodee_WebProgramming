@@ -11,6 +11,13 @@ function OrderList() {
   const [isClosing, setIsClosing] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: 'asc'
+  });
 
   useEffect(() => {
     fetchOrders();
@@ -21,6 +28,7 @@ function OrderList() {
       const response = await axios.get('http://localhost:5001/api/orders');
       if (response.data && Array.isArray(response.data.data)) {
         setOrders(response.data.data);
+        setFilteredOrders(response.data.data);
       } else {
         setOrders([]);
       }
@@ -81,23 +89,108 @@ function OrderList() {
     }
   };
 
+  const handleSearch = (value) => {
+    setSearchTerm(value);
+    if (!value.trim()) {
+      setFilteredOrders(orders);
+      return;
+    }
+
+    const searchValue = value.toLowerCase();
+    const filtered = orders.filter(order => 
+      order.order_code.toLowerCase().includes(searchValue) ||
+      order.table_number.toString().includes(searchValue) ||
+      order.total_amount.toString().includes(searchValue) ||
+      order.status.toLowerCase().includes(searchValue) ||
+      (order.product_details && order.product_details.some(detail => 
+        detail.toLowerCase().includes(searchValue)
+      )) ||
+      new Date(order.created_at).toLocaleString('vi-VN').toLowerCase().includes(searchValue)
+    );
+    setFilteredOrders(filtered);
+  };
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+
+    const sortedOrders = [...filteredOrders].sort((a, b) => {
+      if (key === 'order_code') {
+        return direction === 'asc' 
+          ? a.order_code.localeCompare(b.order_code)
+          : b.order_code.localeCompare(a.order_code);
+      }
+      if (key === 'table_number') {
+        return direction === 'asc'
+          ? a.table_number.localeCompare(b.table_number)
+          : b.table_number.localeCompare(a.table_number);
+      }
+      if (key === 'total_amount') {
+        return direction === 'asc'
+          ? a.total_amount - b.total_amount
+          : b.total_amount - a.total_amount;
+      }
+      if (key === 'status') {
+        return direction === 'asc'
+          ? a.status.localeCompare(b.status)
+          : b.status.localeCompare(a.status);
+      }
+      if (key === 'created_at') {
+        return direction === 'asc'
+          ? new Date(a.created_at) - new Date(b.created_at)
+          : new Date(b.created_at) - new Date(a.created_at);
+      }
+      return 0;
+    });
+
+    setFilteredOrders(sortedOrders);
+  };
+
+  const formatDateTime = (dateString) => {
+    const date = new Date(dateString);
+    date.setHours(date.getHours() + 7);
+    return date.toLocaleString('vi-VN');
+  };
+
   if (loading) return <div className="text-center p-5">Đang tải...</div>;
 
   return (
     <div className="admin-orders">
       <div className="orders-header">
         <h2>Quản lý đơn hàng</h2>
-        <button className="add-order-btn" onClick={handleAddOrder}>
-          {showForm ? (
-            <>
-              <i className="fas fa-minus"></i> Ẩn form
-            </>
-          ) : (
-            <>
-              <i className="fas fa-plus"></i> Thêm đơn hàng
-            </>
-          )}
-        </button>
+        <div className="header-actions">
+          <div className={`search-container ${showSearch ? 'show' : ''}`}>
+            <button 
+              className="search-btn"
+              onClick={() => setShowSearch(!showSearch)}
+            >
+              <i className="fas fa-search"></i>
+            </button>
+            {showSearch && (
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Tìm kiếm..."
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+              />
+            )}
+          </div>
+          <button className="add-order-btn" onClick={handleAddOrder}>
+            {showForm ? (
+              <>
+                <i className="fas fa-minus"></i> Ẩn form
+              </>
+            ) : (
+              <>
+                <i className="fas fa-plus"></i> Thêm đơn hàng
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -110,22 +203,47 @@ function OrderList() {
         <table>
           <thead>
             <tr>
-              <th>Mã đơn</th>
-              <th>Bàn</th>
+              <th onClick={() => handleSort('order_code')} className="sortable">
+                Mã đơn
+                {sortConfig.key === 'order_code' && (
+                  <i className={`fas fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'}`}></i>
+                )}
+              </th>
+              <th onClick={() => handleSort('table_number')} className="sortable">
+                Bàn
+                {sortConfig.key === 'table_number' && (
+                  <i className={`fas fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'}`}></i>
+                )}
+              </th>
               <th>Sản phẩm</th>
-              <th>Tổng tiền</th>
-              <th>Trạng thái</th>
-              <th>Thời gian</th>
+              <th onClick={() => handleSort('total_amount')} className="sortable">
+                Tổng tiền
+                {sortConfig.key === 'total_amount' && (
+                  <i className={`fas fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'}`}></i>
+                )}
+              </th>
+              <th onClick={() => handleSort('status')} className="sortable">
+                Trạng thái
+                {sortConfig.key === 'status' && (
+                  <i className={`fas fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'}`}></i>
+                )}
+              </th>
+              <th onClick={() => handleSort('created_at')} className="sortable">
+                Thời gian
+                {sortConfig.key === 'created_at' && (
+                  <i className={`fas fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'}`}></i>
+                )}
+              </th>
               <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
-            {orders.length === 0 ? (
+            {filteredOrders.length === 0 ? (
               <tr>
                 <td colSpan="7" className="text-center">Không có đơn hàng nào</td>
               </tr>
             ) : (
-              orders.map(order => (
+              filteredOrders.map(order => (
                 <tr key={order.id}>
                   <td>{order.order_code}</td>
                   <td>Bàn {order.table_number}</td>
@@ -153,7 +271,7 @@ function OrderList() {
                       {order.status}
                     </span>
                   </td>
-                  <td>{new Date(order.created_at).toLocaleString('vi-VN')}</td>
+                  <td>{formatDateTime(order.created_at)}</td>
                   <td className="action-buttons">
                     <button className="edit-btn" onClick={() => handleViewOrder(order)}>
                       <i className="fas fa-eye"></i>

@@ -134,3 +134,23 @@
         margin-top: 5px;
     }
 }
+
+.table-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.table-select:focus {
+    border-color: #F28123;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(242, 129, 35, 0.1);
+}
+
+.table-select option {
+    padding: 8px;
+}

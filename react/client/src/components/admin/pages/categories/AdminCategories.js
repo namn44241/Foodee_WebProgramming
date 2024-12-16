@@ -12,6 +12,13 @@ function AdminCategories() {
         description: '',
         is_active: true
     });
+    const [showSearch, setShowSearch] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredCategories, setFilteredCategories] = useState([]);
+    const [sortConfig, setSortConfig] = useState({
+        key: null,
+        direction: 'asc'
+    });
 
     // Fetch categories
     useEffect(() => {
@@ -27,6 +34,7 @@ function AdminCategories() {
             
             if (response.data.success) {
                 setCategories(response.data.data);
+                setFilteredCategories(response.data.data);
             }
         } catch (error) {
             console.error('Error fetching categories:', error);
@@ -149,16 +157,82 @@ function AdminCategories() {
         }, 500);
     };
 
+    const handleSearch = (value) => {
+        setSearchTerm(value);
+        if (!value.trim()) {
+            setFilteredCategories(categories);
+            return;
+        }
+
+        const searchValue = value.toLowerCase();
+        const filtered = categories.filter(category => 
+            category.name.toLowerCase().includes(searchValue) ||
+            (category.description && category.description.toLowerCase().includes(searchValue)) ||
+            (category.is_active ? 'đang hoạt động' : 'tạm ngưng').includes(searchValue)
+        );
+        setFilteredCategories(filtered);
+    };
+
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+
+        const sortedCategories = [...filteredCategories].sort((a, b) => {
+            if (key === 'name') {
+                return direction === 'asc' 
+                    ? a.name.localeCompare(b.name)
+                    : b.name.localeCompare(a.name);
+            }
+            if (key === 'description') {
+                return direction === 'asc'
+                    ? (a.description || '').localeCompare(b.description || '')
+                    : (b.description || '').localeCompare(a.description || '');
+            }
+            if (key === 'status') {
+                const statusA = a.is_active ? 'Đang hoạt động' : 'Tạm ngưng';
+                const statusB = b.is_active ? 'Đang hoạt động' : 'Tạm ngưng';
+                return direction === 'asc'
+                    ? statusA.localeCompare(statusB)
+                    : statusB.localeCompare(statusA);
+            }
+            return 0;
+        });
+
+        setFilteredCategories(sortedCategories);
+    };
+
     return (
         <div className="admin-categories">
             <div className="categories-header">
                 <h2>Quản lý danh mục</h2>
-                <button 
-                    onClick={() => showForm ? handleCloseForm() : setShowForm(true)}
-                    className="add-category-btn"
-                >
-                    <i className="fas fa-plus"></i> {showForm ? 'Ẩn form' : 'Thêm danh mục'}
-                </button>
+                <div className="header-actions">
+                    <div className={`search-container ${showSearch ? 'show' : ''}`}>
+                        <button 
+                            className="search-btn"
+                            onClick={() => setShowSearch(!showSearch)}
+                        >
+                            <i className="fas fa-search"></i>
+                        </button>
+                        {showSearch && (
+                            <input
+                                type="text"
+                                className="search-input"
+                                placeholder="Tìm kiếm..."
+                                value={searchTerm}
+                                onChange={(e) => handleSearch(e.target.value)}
+                            />
+                        )}
+                    </div>
+                    <button 
+                        className="add-category-btn"
+                        onClick={() => showForm ? handleCloseForm() : setShowForm(true)}
+                    >
+                        <i className="fas fa-plus"></i> {showForm ? 'Ẩn form' : 'Thêm danh mục'}
+                    </button>
+                </div>
             </div>
 
             {showForm && (
@@ -222,13 +296,38 @@ function AdminCategories() {
                 <table>
                     <thead>
                         <tr>
-                            <th>Tên danh mục</th>
-                            <th>Mô tả</th>
+                            <th 
+                                className="sortable"
+                                onClick={() => handleSort('name')}
+                            >
+                                Tên danh mục
+                                {sortConfig.key === 'name' && (
+                                    <i className={`fas fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'}`}></i>
+                                )}
+                            </th>
+                            <th 
+                                className="sortable"
+                                onClick={() => handleSort('description')}
+                            >
+                                Mô tả
+                                {sortConfig.key === 'description' && (
+                                    <i className={`fas fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'}`}></i>
+                                )}
+                            </th>
+                            <th 
+                                className="sortable"
+                                onClick={() => handleSort('status')}
+                            >
+                                Trạng thái
+                                {sortConfig.key === 'status' && (
+                                    <i className={`fas fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'}`}></i>
+                                )}
+                            </th>
                             <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {categories.map(category => (
+                        {filteredCategories.map(category => (
                             <tr key={category.id}>
                                 <td>{category.name}</td>
                                 <td>{category.description}</td>

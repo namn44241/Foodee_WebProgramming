@@ -114,6 +114,9 @@ function TableList() {
   const [editingTable, setEditingTable] = useState(null);
   const [showQRModal, setShowQRModal] = useState(false);
   const [selectedTableId, setSelectedTableId] = useState(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredTables, setFilteredTables] = useState([]);
 
   useEffect(() => {
     fetchTables();
@@ -128,6 +131,7 @@ function TableList() {
       
       if (response.data.success) {
         setTables(response.data.data);
+        setFilteredTables(response.data.data);
       }
       setLoading(false);
     } catch (error) {
@@ -211,7 +215,7 @@ function TableList() {
   };
 
   const renderSlot = (index) => {
-    const table = tables.find(t => t.position === index);
+    const table = filteredTables.find(t => t.position === index);
     
     if (table) {
         return (
@@ -340,6 +344,7 @@ function TableList() {
 
         Swal.fire('Đã xóa!', 'Bàn đã được xóa thành công.', 'success');
         fetchTables();
+        handleCloseForm();
       }
     } catch (error) {
       console.error('Error deleting table:', error);
@@ -357,25 +362,60 @@ function TableList() {
     setSelectedTableId(null);
   };
 
+  const handleSearch = (value) => {
+    setSearchTerm(value);
+    if (!value.trim()) {
+      setFilteredTables(tables);
+      return;
+    }
+
+    const searchValue = value.toLowerCase();
+    const filtered = tables.filter(table => 
+      table.table_number.toLowerCase().includes(searchValue) ||
+      table.status.toLowerCase().includes(searchValue) ||
+      (table.status === 'available' ? 'hoạt động' : 'bảo trì').includes(searchValue)
+    );
+    setFilteredTables(filtered);
+  };
+
   return (
     <div className="table-management">
       <div className="table-header">
         <h2>Quản lý bàn ăn</h2>
-        <button className="add-table-btn" onClick={() => {
-          setIsEditing(false);
-          setEditingTable(null);
-          setShowForm(!showForm);
-        }}>
-          {showForm ? (
-            <>
-              <i className="fas fa-minus"></i> Ẩn form
-            </>
-          ) : (
-            <>
-              <i className="fas fa-plus"></i> Thêm bàn ăn
-            </>
-          )}
-        </button>
+        <div className="header-actions">
+          <div className={`search-container ${showSearch ? 'show' : ''}`}>
+            <button 
+              className="search-btn"
+              onClick={() => setShowSearch(!showSearch)}
+            >
+              <i className="fas fa-search"></i>
+            </button>
+            {showSearch && (
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Tìm kiếm..."
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+              />
+            )}
+          </div>
+          <button className="add-table-btn" onClick={() => {
+            setIsEditing(false);
+            setEditingTable(null);
+            setShowForm(!showForm);
+          }}>
+            {showForm ? (
+              <>
+                <i className="fas fa-minus"></i> Ẩn form
+              </>
+            ) : (
+              <>
+                <i className="fas fa-plus"></i> Thêm bàn ăn
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -431,6 +471,15 @@ function TableList() {
               <button type="submit" className="save-btn">
                 {isEditing ? 'Cập nhật' : 'Thêm mới'}
               </button>
+              {isEditing && (
+                <button 
+                  type="button" 
+                  className="delete-btn"
+                  onClick={() => handleDelete(editingTable.id)}
+                >
+                  Xóa bàn
+                </button>
+              )}
               <button type="button" className="cancel-btn" onClick={handleCloseForm}>
                 Hủy
               </button>

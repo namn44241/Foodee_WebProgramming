@@ -12,6 +12,7 @@ function OrderForm({ onClose }) {
   const [toppings, setToppings] = useState([]);
   const [tableNumber, setTableNumber] = useState('');
   const [orderItems, setOrderItems] = useState([]);
+  const [tables, setTables] = useState([]);
 
   // Lấy token từ localStorage
   const token = localStorage.getItem('token');
@@ -25,6 +26,7 @@ function OrderForm({ onClose }) {
 
   useEffect(() => {
     fetchProducts();
+    fetchTables();
   }, []);
 
   const fetchProducts = async () => {
@@ -34,6 +36,21 @@ function OrderForm({ onClose }) {
     } catch (error) {
       console.error('Error fetching products:', error);
       Swal.fire('Lỗi', 'Không thể tải danh sách sản phẩm', 'error');
+    }
+  };
+
+  const fetchTables = async () => {
+    try {
+      const response = await axios.get('http://localhost:5001/api/tables', config);
+      if (response.data.success) {
+        const availableTables = response.data.data.filter(table => 
+          table.status === 'available' && table.table_number !== 'CASH'
+        );
+        setTables(availableTables);
+      }
+    } catch (error) {
+      console.error('Error fetching tables:', error);
+      Swal.fire('Lỗi', 'Không thể tải danh sách bàn', 'error');
     }
   };
 
@@ -125,15 +142,6 @@ function OrderForm({ onClose }) {
     return (product.price + toppingTotal) * quantity;
   };
 
-  const calculateTotal = () => {
-    return orderItems.reduce((total, item) => {
-      const basePrice = parseFloat(item.product.price) || 0;
-      const toppingTotal = item.toppings.reduce((sum, topping) => 
-        sum + (parseFloat(topping.price_adjustment) || 0), 0);
-      return total + ((basePrice + toppingTotal) * item.quantity);
-    }, 0);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!tableNumber || orderItems.length === 0) {
@@ -177,19 +185,36 @@ function OrderForm({ onClose }) {
     }
   };
 
+  const calculateTotal = () => {
+    if (!orderItems || orderItems.length === 0) return 0;
+    
+    return orderItems.reduce((sum, item) => {
+        const basePrice = Number(item.product.price) || 0;
+        const toppingTotal = item.toppings.reduce((tSum, t) => tSum + (Number(t.price_adjustment) || 0), 0);
+        const itemTotal = (basePrice + toppingTotal) * item.quantity;
+        return sum + itemTotal;
+    }, 0);
+};
+
   return (
     <div className="order-form">
       <h3>Thêm đơn hàng mới</h3>
       
       <div className="form-group-order">
-        <label>Số bàn</label>
-        <input
-          type="number"
+        <label>Chọn bàn</label>
+        <select
           value={tableNumber}
           onChange={(e) => setTableNumber(e.target.value)}
           required
-          min="1"
-        />
+          className="table-select"
+        >
+          <option value="">-- Chọn bàn --</option>
+          {tables.map(table => (
+            <option key={table.id} value={table.id}>
+              Bàn {table.table_number}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="products-grid">

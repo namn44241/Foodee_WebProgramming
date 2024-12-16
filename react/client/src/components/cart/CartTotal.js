@@ -18,6 +18,15 @@ function CartTotal() {
 
   const handleCheckout = async () => {
     try {
+      if (!cartItems || cartItems.length === 0) {
+        Swal.fire({
+          title: 'Giỏ hàng trống',
+          text: 'Vui lòng thêm sản phẩm vào giỏ hàng trước khi thanh toán',
+          icon: 'warning'
+        });
+        return;
+      }
+
       const tableId = localStorage.getItem('tableId');
       
       if (!tableId) {

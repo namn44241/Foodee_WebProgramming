@@ -24,6 +24,13 @@ function AdminProducts() {
     const [selectedToppings, setSelectedToppings] = useState([]);
     const [showOptionModal, setShowOptionModal] = useState(false);
     const [newOption, setNewOption] = useState({ name: '', price_adjustment: 0 });
+    const [showSearch, setShowSearch] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredProducts, setFilteredProducts] = useState([]);
+    const [sortConfig, setSortConfig] = useState({
+        key: null,
+        direction: 'asc'
+    });
 
     // Định nghĩa fetchProducts ở ngoài useEffect
     const fetchProducts = async () => {
@@ -37,6 +44,7 @@ function AdminProducts() {
 
             if (productsRes.data.success) {
                 setProducts(productsRes.data.data);
+                setFilteredProducts(productsRes.data.data);
             } else {
                 throw new Error(productsRes.data.message);
             }
@@ -346,30 +354,106 @@ function AdminProducts() {
         setShowForm(true);
     };
 
+    const handleSearch = (value) => {
+        setSearchTerm(value);
+        if (!value.trim()) {
+            setFilteredProducts(products);
+            return;
+        }
+
+        const searchValue = value.toLowerCase();
+        const filtered = products.filter(product => 
+            product.name.toLowerCase().includes(searchValue) ||
+            product.description.toLowerCase().includes(searchValue) ||
+            product.price.toString().includes(searchValue) ||
+            (product.category && product.category.name.toLowerCase().includes(searchValue)) ||
+            (product.is_available ? 'đang bán' : 'ngừng bán').includes(searchValue)
+        );
+        setFilteredProducts(filtered);
+    };
+
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+
+        const sortedProducts = [...filteredProducts].sort((a, b) => {
+            switch (key) {
+                case 'name':
+                    return direction === 'asc' 
+                        ? a.name.localeCompare(b.name)
+                        : b.name.localeCompare(a.name);
+                
+                case 'category':
+                    return direction === 'asc'
+                        ? a.category_name.localeCompare(b.category_name)
+                        : b.category_name.localeCompare(a.category_name);
+                
+                case 'price':
+                    return direction === 'asc'
+                        ? a.price - b.price
+                        : b.price - a.price;
+                
+                case 'status':
+                    const statusA = a.is_available ? 'Đang bán' : 'Ngừng bán';
+                    const statusB = b.is_available ? 'Đang bán' : 'Ngừng bán';
+                    return direction === 'asc'
+                        ? statusA.localeCompare(statusB)
+                        : statusB.localeCompare(statusA);
+                
+                default:
+                    return 0;
+            }
+        });
+
+        setFilteredProducts(sortedProducts);
+    };
+
     return (
         <div className="admin-products">
             <div className="products-header">
                 <h2>Quản lý sản phẩm</h2>
-                <button 
-                    className="add-product-btn"
-                    onClick={() => {
-                        if (showForm) {
-                            handleCloseForm();
-                        } else {
-                            handleShowAddForm();
-                        }
-                    }}
-                >
-                    {showForm ? (
-                        <>
-                            <i className="fas fa-minus"></i> Ẩn form
-                        </>
-                    ) : (
-                        <>
-                            <i className="fas fa-plus"></i> Thêm sản phẩm
-                        </>
-                    )}
-                </button>
+                <div className="header-actions">
+                    <div className={`search-container ${showSearch ? 'show' : ''}`}>
+                        <button 
+                            className="search-btn"
+                            onClick={() => setShowSearch(!showSearch)}
+                        >
+                            <i className="fas fa-search"></i>
+                        </button>
+                        {showSearch && (
+                            <input
+                                type="text"
+                                className="search-input"
+                                placeholder="Tìm kiếm..."
+                                value={searchTerm}
+                                onChange={(e) => handleSearch(e.target.value)}
+                            />
+                        )}
+                    </div>
+                    <button 
+                        className="add-product-btn"
+                        onClick={() => {
+                            if (showForm) {
+                                handleCloseForm();
+                            } else {
+                                handleShowAddForm();
+                            }
+                        }}
+                    >
+                        {showForm ? (
+                            <>
+                                <i className="fas fa-minus"></i> Ẩn form
+                            </>
+                        ) : (
+                            <>
+                                <i className="fas fa-plus"></i> Thêm sản phẩm
+                            </>
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* Form thêm sản phẩm */}
@@ -553,15 +637,47 @@ function AdminProducts() {
                     <thead>
                         <tr>
                             <th>Hình ảnh</th>
-                            <th>Tên sản phẩm</th>
-                            <th>Danh mục</th>
-                            <th>Giá</th>
-                            <th>Trạng thái</th>
+                            <th 
+                                className="sortable"
+                                onClick={() => handleSort('name')}
+                            >
+                                Tên sản phẩm
+                                {sortConfig.key === 'name' && (
+                                    <i className={`fas fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'}`}></i>
+                                )}
+                            </th>
+                            <th 
+                                className="sortable"
+                                onClick={() => handleSort('category')}
+                            >
+                                Danh mục
+                                {sortConfig.key === 'category' && (
+                                    <i className={`fas fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'}`}></i>
+                                )}
+                            </th>
+                            <th 
+                                className="sortable"
+                                onClick={() => handleSort('price')}
+                            >
+                                Giá
+                                {sortConfig.key === 'price' && (
+                                    <i className={`fas fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'}`}></i>
+                                )}
+                            </th>
+                            <th 
+                                className="sortable"
+                                onClick={() => handleSort('status')}
+                            >
+                                Trạng thái
+                                {sortConfig.key === 'status' && (
+                                    <i className={`fas fa-sort-${sortConfig.direction === 'asc' ? 'up' : 'down'}`}></i>
+                                )}
+                            </th>
                             <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {products && products.map(product => (
+                        {filteredProducts.map(product => (
                             <tr key={product.id}>
                                 <td>
                                     <div className="table-image-container">
@@ -604,10 +720,10 @@ function AdminProducts() {
             </div>
 
             {showOptionModal && (
-                <div className="product-option-modal-overlay">
-                    <div className="product-option-modal-container">
+                <div className="modal-overlay">
+                    <div className="modal-content">
                         <h3>Thêm tùy chọn mới</h3>
-                        <div className="product-option-form-group">
+                        <div className="form-group">
                             <label>Tên tùy chọn</label>
                             <input
                                 type="text"
@@ -616,26 +732,24 @@ function AdminProducts() {
                                 placeholder="Nhập tên tùy chọn"
                             />
                         </div>
-                        <div className="product-option-form-group">
-                            <label>Giá</label>
+                        <div className="form-group">
+                            <label>Giá điều chỉnh</label>
                             <input
                                 type="number"
                                 value={newOption.price_adjustment}
-                                onChange={(e) => setNewOption({...newOption, price_adjustment: Number(e.target.value)})}
-                                placeholder="Nhập giá"
+                                onChange={(e) => setNewOption({...newOption, price_adjustment: e.target.value})}
+                                placeholder="Nhập giá điều chỉnh"
                             />
                         </div>
-                        <div className="product-option-buttons">
+                        <div className="modal-actions">
                             <button 
-                                type="button" 
-                                className="product-option-confirm"
+                                className="submit-btn"
                                 onClick={handleAddNewOption}
                             >
                                 Thêm
                             </button>
                             <button 
-                                type="button" 
-                                className="product-option-cancel"
+                                className="cancel-btn"
                                 onClick={() => {
                                     setShowOptionModal(false);
                                     setNewOption({ name: '', price_adjustment: 0 });

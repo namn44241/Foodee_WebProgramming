@@ -149,9 +149,12 @@ const productController = {
             await connection.beginTransaction();
 
             try {
+                // Convert is_available từ 'true'/'false' thành 1/0
+                const isAvailableInt = is_available === 'true' ? 1 : 0;
+
                 // Cập nhật thông tin sản phẩm
                 let updateQuery = 'UPDATE products SET name = ?, price = ?, description = ?, category_id = ?, is_available = ?';
-                let params = [name, price, description, category_id, is_available];
+                let params = [name, price, description, category_id, isAvailableInt];
 
                 if (req.file) {
                     updateQuery += ', image_name = ?';

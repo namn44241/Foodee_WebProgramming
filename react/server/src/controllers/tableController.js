@@ -125,6 +125,35 @@ const tableController = {
                 message: 'Lỗi khi xóa bàn'
             });
         }
+    },
+
+    getTableInfo: async (req, res) => {
+        try {
+            const { id } = req.params;
+            
+            const [table] = await db.execute(
+                'SELECT * FROM tables WHERE id = ?',
+                [id]
+            );
+
+            if (table.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Không tìm thấy bàn'
+                });
+            }
+
+            res.json({
+                success: true,
+                data: table[0]
+            });
+        } catch (error) {
+            console.error('Error getting table info:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi lấy thông tin bàn'
+            });
+        }
     }
 };
 

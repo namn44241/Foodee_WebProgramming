@@ -1,21 +1,37 @@
+// src/components/table/TableRedirect.js
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useTable } from '../../contexts/TableContext';
+import axios from 'axios';
 
 function TableRedirect() {
-  const { id } = useParams();
+  const { tableId } = useParams();
   const navigate = useNavigate();
-  const { setCurrentTableId } = useTable();
 
   useEffect(() => {
-    // Set tableId vào context
-    setCurrentTableId(id);
-    
-    // Redirect về trang chủ
-    navigate('/', { replace: true });
-  }, [id, setCurrentTableId, navigate]);
+    const validateAndRedirect = async () => {
+      try {
+        // Kiểm tra bàn có tồn tại
+        const response = await axios.get(`http://localhost:5001/api/tables/info/${tableId}`);
+        if (response.data.success) {
+          // Lưu tableId vào localStorage
+          localStorage.setItem('tableId', tableId);
+          // Chuyển hướng về trang chủ
+          navigate('/');
+        } else {
+          alert('Bàn không tồn tại!');
+          navigate('/');
+        }
+      } catch (error) {
+        console.error('Error validating table:', error);
+        alert('Có lỗi xảy ra!');
+        navigate('/');
+      }
+    };
 
-  return null; // Component này không render gì cả
+    validateAndRedirect();
+  }, [tableId, navigate]);
+
+  return null;
 }
 
 export default TableRedirect;

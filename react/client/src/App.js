@@ -98,7 +98,7 @@ function App() {
             <Route path="cart" element={<Cart />} />
             <Route path="checkout" element={<Checkout />} />
             <Route path="product/:id" element={<SingleProduct />} />
-            <Route path="/table/:id" element={<TableRedirect />} />
+            <Route path="/table/:tableId" element={<TableRedirect />} />
           </Route>
         </Routes>
       </CartProvider>

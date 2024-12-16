@@ -18,6 +18,17 @@ function CartTotal() {
 
   const handleCheckout = async () => {
     try {
+      const tableId = localStorage.getItem('tableId');
+      
+      if (!tableId) {
+        Swal.fire({
+          title: 'Lỗi',
+          text: 'Vui lòng quét mã QR trên mặt bàn để đặt món nhé khách iu',
+          icon: 'error'
+        });
+        return;
+      }
+
       const result = await Swal.fire({
         title: 'Xác nhận thanh toán',
         text: `Tổng số tiền: ${calculateTotal().toLocaleString('vi-VN')}đ`,
@@ -29,7 +40,7 @@ function CartTotal() {
 
       if (result.isConfirmed) {
         const orderData = {
-          tableId: 1,
+          tableId: parseInt(tableId),
           products: cartItems.map(item => {
             const toppingTotal = item.toppings ? item.toppings.reduce((sum, t) => 
               sum + (parseFloat(t.price_adjustment) || 0), 0) : 0;

@@ -389,3 +389,257 @@
   .orders-table th {
     transition: background-color 0.3s ease;
   }
+  
+  .invoice-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 20px;
+    border-bottom: 2px solid #ddd;
+  }
+  
+  .invoice-info {
+    margin: 15px 0;
+    text-align: left;
+  }
+  
+  .invoice-items {
+    margin: 20px 0;
+  }
+  
+  .invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .invoice-table th,
+  .invoice-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+  }
+  
+  .invoice-table th {
+    background-color: #f5f5f5;
+  }
+  
+  .text-center {
+    text-align: center;
+  }
+  
+  .text-right {
+    text-align: right;
+  }
+  
+  .invoice-summary {
+    margin: 20px 0;
+    padding: 20px;
+    border-top: 2px solid #ddd;
+  }
+  
+  .total-amount {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .invoice-footer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    border-top: 1px solid #ddd;
+  }
+  
+  .print-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+  
+  .close-btn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  @media print {
+    .modal-actions {
+      display: none;
+    }
+    
+    .modal-content {
+      box-shadow: none;
+      padding: 0;
+    }
+    
+    .invoice-header,
+    .invoice-items,
+    .invoice-summary,
+    .invoice-footer {
+      page-break-inside: avoid;
+    }
+  }
+  
+  .invoice-modal {
+    width: 400px;
+    max-height: 600px;
+    overflow-y: auto;
+  }
+  
+  .invoice-table {
+    margin: 10px 0;
+  }
+  
+  .invoice-table th,
+  .invoice-table td {
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  .invoice-header h2 {
+    margin: 0;
+    font-size: 20px;
+  }
+  
+  .invoice-info p {
+    margin: 5px 0;
+    font-size: 14px;
+  }
+  
+  .invoice-summary {
+    margin: 15px 0;
+    padding: 10px 0;
+  }
+  
+  .invoice-footer {
+    margin-top: 20px;
+    font-size: 14px;
+  }
+  
+  .invoice-footer p {
+    margin: 5px 0;
+  }
+  
+  @media print {
+    .invoice-modal {
+      width: 80mm;
+      padding: 0;
+      margin: 0;
+    }
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    gap: 5px;
+  }
+  
+  .pagination-btn {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    background: white;
+    color: #333;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+  
+  .pagination-btn:hover:not(:disabled) {
+    background: #F28123;
+    color: white;
+    border-color: #F28123;
+  }
+  
+  .pagination-btn.active {
+    background: #F28123;
+    color: white;
+    border-color: #F28123;
+  }
+  
+  .pagination-btn:disabled {
+    background: #f5f5f5;
+    color: #999;
+    cursor: not-allowed;
+  }
+  
+  .orders-table tbody {
+    position: relative;
+    transition: opacity 0.3s ease-in-out;
+  }
+  
+  .orders-table tbody.fade-enter {
+    opacity: 0;
+  }
+  
+  .orders-table tbody.fade-enter-active {
+    opacity: 1;
+  }
+  
+  .orders-table tbody.fade-exit {
+    opacity: 1;
+  }
+  
+  .orders-table tbody.fade-exit-active {
+    opacity: 0;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .orders-table tr {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+  
+  .orders-table tr:nth-child(1) { animation-delay: 0.1s; }
+  .orders-table tr:nth-child(2) { animation-delay: 0.15s; }
+  .orders-table tr:nth-child(3) { animation-delay: 0.2s; }
+  .orders-table tr:nth-child(4) { animation-delay: 0.25s; }
+  .orders-table tr:nth-child(5) { animation-delay: 0.3s; }
+  .orders-table tr:nth-child(6) { animation-delay: 0.35s; }
+  .orders-table tr:nth-child(7) { animation-delay: 0.4s; }
+  .orders-table tr:nth-child(8) { animation-delay: 0.45s; }
+  .orders-table tr:nth-child(9) { animation-delay: 0.5s; }
+  .orders-table tr:nth-child(10) { animation-delay: 0.55s; }
+  .orders-table tr:nth-child(11) { animation-delay: 0.6s; }
+  .orders-table tr:nth-child(12) { animation-delay: 0.65s; }
+  .orders-table tr:nth-child(13) { animation-delay: 0.7s; }
+  .orders-table tr:nth-child(14) { animation-delay: 0.75s; }
+  .orders-table tr:nth-child(15) { animation-delay: 0.8s; }
+  
+  .pagination-btn {
+    transform: scale(1);
+    transition: all 0.3s ease;
+  }
+  
+  .pagination-btn:hover:not(:disabled) {
+    transform: scale(1.1);
+  }
+  
+  .pagination-btn:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+  
+  .pagination {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  
+  .pagination.loading {
+    opacity: 0.5;
+    pointer-events: none;
+  }

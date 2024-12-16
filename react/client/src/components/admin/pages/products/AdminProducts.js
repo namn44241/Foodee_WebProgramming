@@ -31,6 +31,8 @@ function AdminProducts() {
         key: null,
         direction: 'asc'
     });
+    const [currentPage, setCurrentPage] = useState(1);
+    const [productsPerPage] = useState(15);
 
     // Định nghĩa fetchProducts ở ngoài useEffect
     const fetchProducts = async () => {
@@ -356,6 +358,7 @@ function AdminProducts() {
 
     const handleSearch = (value) => {
         setSearchTerm(value);
+        setCurrentPage(1); // Reset về trang 1 khi tìm kiếm
         if (!value.trim()) {
             setFilteredProducts(products);
             return;
@@ -409,6 +412,23 @@ function AdminProducts() {
         });
 
         setFilteredProducts(sortedProducts);
+    };
+
+    // Tính toán các sản phẩm cho trang hiện tại
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+    // Hàm chuyển trang với animation
+    const paginate = (pageNumber) => {
+        const tbody = document.querySelector('.products-table tbody');
+        tbody.style.opacity = '0';
+        
+        setTimeout(() => {
+            setCurrentPage(pageNumber);
+            tbody.style.opacity = '1';
+        }, 300);
     };
 
     return (
@@ -677,7 +697,7 @@ function AdminProducts() {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredProducts.map(product => (
+                        {currentProducts.map(product => (
                             <tr key={product.id}>
                                 <td>
                                     <div className="table-image-container">
@@ -717,6 +737,35 @@ function AdminProducts() {
                         ))}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Thêm phân trang */}
+            <div className="pagination">
+                <button 
+                    onClick={() => paginate(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="pagination-btn"
+                >
+                    <i className="fas fa-chevron-left"></i>
+                </button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                    <button
+                        key={number}
+                        onClick={() => paginate(number)}
+                        className={`pagination-btn ${currentPage === number ? 'active' : ''}`}
+                    >
+                        {number}
+                    </button>
+                ))}
+
+                <button 
+                    onClick={() => paginate(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="pagination-btn"
+                >
+                    <i className="fas fa-chevron-right"></i>
+                </button>
             </div>
 
             {showOptionModal && (

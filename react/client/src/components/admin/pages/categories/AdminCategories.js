@@ -19,6 +19,8 @@ function AdminCategories() {
         key: null,
         direction: 'asc'
     });
+    const [currentPage, setCurrentPage] = useState(1);
+    const [categoriesPerPage] = useState(10);
 
     // Fetch categories
     useEffect(() => {
@@ -159,6 +161,7 @@ function AdminCategories() {
 
     const handleSearch = (value) => {
         setSearchTerm(value);
+        setCurrentPage(1);
         if (!value.trim()) {
             setFilteredCategories(categories);
             return;
@@ -202,6 +205,21 @@ function AdminCategories() {
         });
 
         setFilteredCategories(sortedCategories);
+    };
+
+    const indexOfLastCategory = currentPage * categoriesPerPage;
+    const indexOfFirstCategory = indexOfLastCategory - categoriesPerPage;
+    const currentCategories = filteredCategories.slice(indexOfFirstCategory, indexOfLastCategory);
+    const totalPages = Math.ceil(filteredCategories.length / categoriesPerPage);
+
+    const paginate = (pageNumber) => {
+        const tbody = document.querySelector('.categories-table tbody');
+        tbody.style.opacity = '0';
+        
+        setTimeout(() => {
+            setCurrentPage(pageNumber);
+            tbody.style.opacity = '1';
+        }, 300);
     };
 
     return (
@@ -327,7 +345,7 @@ function AdminCategories() {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredCategories.map(category => (
+                        {currentCategories.map(category => (
                             <tr key={category.id}>
                                 <td>{category.name}</td>
                                 <td>{category.description}</td>
@@ -348,6 +366,34 @@ function AdminCategories() {
                         ))}
                     </tbody>
                 </table>
+            </div>
+
+            <div className="pagination">
+                <button 
+                    onClick={() => paginate(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="pagination-btn"
+                >
+                    <i className="fas fa-chevron-left"></i>
+                </button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                    <button
+                        key={number}
+                        onClick={() => paginate(number)}
+                        className={`pagination-btn ${currentPage === number ? 'active' : ''}`}
+                    >
+                        {number}
+                    </button>
+                ))}
+
+                <button 
+                    onClick={() => paginate(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="pagination-btn"
+                >
+                    <i className="fas fa-chevron-right"></i>
+                </button>
             </div>
         </div>
     );

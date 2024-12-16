@@ -18,6 +18,8 @@ function OrderList() {
     key: null,
     direction: 'asc'
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [ordersPerPage] = useState(15);
 
   useEffect(() => {
     fetchOrders();
@@ -103,7 +105,7 @@ function OrderList() {
       order.total_amount.toString().includes(searchValue) ||
       order.status.toLowerCase().includes(searchValue) ||
       (order.product_details && order.product_details.some(detail => 
-        detail.toLowerCase().includes(searchValue)
+        detail.name.toLowerCase().includes(searchValue)
       )) ||
       new Date(order.created_at).toLocaleString('vi-VN').toLowerCase().includes(searchValue)
     );
@@ -153,6 +155,31 @@ function OrderList() {
     const date = new Date(dateString);
     date.setHours(date.getHours() + 7);
     return date.toLocaleString('vi-VN');
+  };
+
+  const handlePrint = () => {
+    const printContent = document.getElementById('print-area');
+    const originalContent = document.body.innerHTML;
+
+    document.body.innerHTML = printContent.innerHTML;
+    window.print();
+    document.body.innerHTML = originalContent;
+    setShowEditModal(false);
+  };
+
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+
+  const paginate = (pageNumber) => {
+    const tbody = document.querySelector('.orders-table tbody');
+    tbody.style.opacity = '0';
+    
+    setTimeout(() => {
+      setCurrentPage(pageNumber);
+      tbody.style.opacity = '1';
+    }, 300);
   };
 
   if (loading) return <div className="text-center p-5">Đang tải...</div>;
@@ -243,24 +270,17 @@ function OrderList() {
                 <td colSpan="7" className="text-center">Không có đơn hàng nào</td>
               </tr>
             ) : (
-              filteredOrders.map(order => (
+              currentOrders.map(order => (
                 <tr key={order.id}>
                   <td>{order.order_code}</td>
                   <td>Bàn {order.table_number}</td>
                   <td>
                     {order.product_details && Array.isArray(order.product_details) ? (
-                      order.product_details.map((detail, index) => {
-                        const cleanDetail = detail
-                          .replace(/\[|\]/g, '')
-                          .replace(/"/g, '')
-                          .replace(/\\/g, '');
-
-                        return (
-                          <div key={index} className="product-detail-item">
-                            {cleanDetail}
-                          </div>
-                        );
-                      })
+                      order.product_details.map((detail, index) => (
+                        <div key={index} className="product-detail-item">
+                          {`${detail.name} x ${detail.quantity}`}
+                        </div>
+                      ))
                     ) : (
                       <div>Không có thông tin sản phẩm</div>
                     )}
@@ -274,7 +294,7 @@ function OrderList() {
                   <td>{formatDateTime(order.created_at)}</td>
                   <td className="action-buttons">
                     <button className="edit-btn" onClick={() => handleViewOrder(order)}>
-                      <i className="fas fa-eye"></i>
+                      <i className="fas fa-print"></i>
                     </button>
                     <button className="update-btn" onClick={() => handleSetCompleted(order.id)}>
                       <i className="fas fa-check text-success"></i>
@@ -290,50 +310,102 @@ function OrderList() {
         </table>
       </div>
 
+      <div className="pagination">
+        <button 
+          onClick={() => paginate(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="pagination-btn"
+        >
+          <i className="fas fa-chevron-left"></i>
+        </button>
+        
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+          <button
+            key={number}
+            onClick={() => paginate(number)}
+            className={`pagination-btn ${currentPage === number ? 'active' : ''}`}
+          >
+            {number}
+          </button>
+        ))}
+
+        <button 
+          onClick={() => paginate(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="pagination-btn"
+        >
+          <i className="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
       {showEditModal && selectedOrder && (
         <div className="modal" onClick={(e) => {
-          if (e.target.className === 'modal') {
+          if (e.target.classList.contains('modal')) {
             setShowEditModal(false);
           }
         }}>
-          <div className={`modal-content ${showEditModal ? 'modal-enter' : 'modal-exit'}`}>
-            <h3>Chỉnh sửa đơn hàng</h3>
-            <div className="form-group">
-              <label>Mã đơn: {selectedOrder.order_code}</label>
+          <div className={`modal-content invoice-modal ${showEditModal ? 'modal-enter' : 'modal-exit'}`}>
+            <div id="print-area">
+              <div className="invoice-header">
+                <h2>HÓA ĐƠN</h2>
+                <div className="invoice-info">
+                  <p>Mã đơn: {selectedOrder.order_code}</p>
+                  <p>Bàn: {selectedOrder.table_number}</p>
+                  <p>Thời gian: {formatDateTime(selectedOrder.created_at)}</p>
+                </div>
+              </div>
+
+              <div className="invoice-items">
+                <table className="invoice-table">
+                  <thead>
+                    <tr>
+                      <th>Sản phẩm</th>
+                      <th className="text-center" style={{width: "80px"}}>SL</th>
+                      <th className="text-right" style={{width: "120px"}}>Đơn giá</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array.isArray(selectedOrder.product_details) ? 
+                      selectedOrder.product_details.map((product, index) => (
+                        <tr key={index}>
+                          <td>{product.name}</td>
+                          <td className="text-center">{product.quantity}</td>
+                          <td className="text-right">
+                            {new Intl.NumberFormat('vi-VN', { 
+                              style: 'currency', 
+                              currency: 'VND' 
+                            }).format(product.totalPrice)}
+                          </td>
+                        </tr>
+                      )) : null}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="invoice-summary">
+                <div className="total-amount">
+                  <h3>Tổng cộng:</h3>
+                  <h3>
+                    {new Intl.NumberFormat('vi-VN', { 
+                      style: 'currency', 
+                      currency: 'VND' 
+                    }).format(selectedOrder.total_amount)}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="invoice-footer">
+                <p>Cảm ơn quý khách!</p>
+                <p>Hẹn gặp lại!</p>
+              </div>
             </div>
-            <div className="form-group">
-              <label>Bàn: {selectedOrder.table_number}</label>
-            </div>
-            <div className="form-group">
-              <label>Sản phẩm: {selectedOrder.product_name}</label>
-            </div>
-            <div className="form-group">
-              <label>Số lượng:</label>
-              <input 
-                type="number" 
-                value={selectedOrder.quantity}
-                onChange={(e) => setSelectedOrder({
-                  ...selectedOrder,
-                  quantity: e.target.value
-                })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Ghi chú:</label>
-              <textarea
-                value={selectedOrder.note || ''}
-                onChange={(e) => setSelectedOrder({
-                  ...selectedOrder,
-                  note: e.target.value
-                })}
-              />
-            </div>
+
             <div className="modal-actions">
-              <button onClick={() => handleUpdateOrder(selectedOrder)}>
-                Lưu thay đổi
+              <button onClick={handlePrint} className="print-btn">
+                <i className="fas fa-print"></i> In hóa đơn
               </button>
-              <button onClick={() => setShowEditModal(false)}>
-                Hủy
+              <button onClick={() => setShowEditModal(false)} className="close-btn">
+                Đóng
               </button>
             </div>
           </div>

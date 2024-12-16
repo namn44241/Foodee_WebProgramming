@@ -544,3 +544,106 @@ td .action-buttons {
   border-color: #F28123;
   box-shadow: 0 0 0 2px rgba(242, 129, 35, 0.1);
 }
+
+/* Animation cho tbody khi chuyển trang */
+.products-table tbody {
+  position: relative;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.products-table tbody.fade-enter {
+  opacity: 0;
+}
+
+.products-table tbody.fade-enter-active {
+  opacity: 1;
+}
+
+.products-table tbody.fade-exit {
+  opacity: 1;
+}
+
+.products-table tbody.fade-exit-active {
+  opacity: 0;
+}
+
+/* Hiệu ứng xuất hiện tuần tự cho các dòng */
+.products-table tr {
+  animation: fadeIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Delay cho từng dòng */
+.products-table tr:nth-child(1) { animation-delay: 0.1s; }
+.products-table tr:nth-child(2) { animation-delay: 0.15s; }
+.products-table tr:nth-child(3) { animation-delay: 0.2s; }
+.products-table tr:nth-child(4) { animation-delay: 0.25s; }
+.products-table tr:nth-child(5) { animation-delay: 0.3s; }
+.products-table tr:nth-child(6) { animation-delay: 0.35s; }
+.products-table tr:nth-child(7) { animation-delay: 0.4s; }
+.products-table tr:nth-child(8) { animation-delay: 0.45s; }
+.products-table tr:nth-child(9) { animation-delay: 0.5s; }
+.products-table tr:nth-child(10) { animation-delay: 0.55s; }
+.products-table tr:nth-child(11) { animation-delay: 0.6s; }
+.products-table tr:nth-child(12) { animation-delay: 0.65s; }
+.products-table tr:nth-child(13) { animation-delay: 0.7s; }
+.products-table tr:nth-child(14) { animation-delay: 0.75s; }
+.products-table tr:nth-child(15) { animation-delay: 0.8s; }
+
+/* Styles cho phân trang */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 5px;
+}
+
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #F28123;
+  color: white;
+  border-color: #F28123;
+  transform: translateY(-2px);
+}
+
+.pagination-btn.active {
+  background: #F28123;
+  color: white;
+  border-color: #F28123;
+}
+
+.pagination-btn:disabled {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.pagination-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.pagination.loading {
+  opacity: 0.5;
+  pointer-events: none;
+}

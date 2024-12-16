@@ -202,25 +202,27 @@ const orderModel = {
                                 CASE 
                                     WHEN oi.order_toppings IS NOT NULL 
                                     AND oi.order_toppings != '[]' 
-                                    AND oi.order_toppings != ''
                                     THEN CONCAT(' - ', 
                                         REPLACE(
                                             REPLACE(
-                                                REPLACE(
-                                                    JSON_EXTRACT(oi.order_toppings, '$[*].name'),
-                                                    '[', ''
-                                                ),
-                                                ']', ''
+                                                JSON_EXTRACT(oi.order_toppings, '$[*].name'),
+                                                '[', ''
                                             ),
-                                            '"', ''
+                                            ']', ''
                                         )
                                     )
                                     ELSE ''
                                 END,
                                 ''
                             ),
-                            ' x',
-                            oi.quantity
+                            '|',
+                            oi.quantity,
+                            '|',
+                            oi.base_price,
+                            '|',
+                            oi.topping_price,
+                            '|',
+                            (oi.base_price + COALESCE(oi.topping_price, 0)) * oi.quantity
                         )
                         SEPARATOR '\n'
                     ) as product_details
@@ -242,7 +244,18 @@ const orderModel = {
             return orders.map(order => ({
                 ...order,
                 product_details: order.product_details ? 
-                    order.product_details.split('\n').filter(detail => detail.trim() !== '') : [],
+                    order.product_details.split('\n')
+                    .filter(detail => detail.trim() !== '')
+                    .map(detail => {
+                        const [name, quantity, basePrice, toppingPrice, totalPrice] = detail.split('|');
+                        return {
+                            name: name.trim(),
+                            quantity: parseInt(quantity),
+                            basePrice: parseFloat(basePrice),
+                            toppingPrice: parseFloat(toppingPrice || 0),
+                            totalPrice: parseFloat(totalPrice)
+                        };
+                    }) : [],
                 total_amount: parseFloat(order.total_amount || 0)
             }));
         } catch (error) {

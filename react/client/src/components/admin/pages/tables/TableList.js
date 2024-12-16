@@ -3,27 +3,50 @@ import './TableList.css';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import QRCode from 'qrcode';
+import qrTemplate from '../../../../assets/images/qr-template.png';
 
 const QRModalComponent = ({ tableId, onClose }) => {
-    const [qrDataUrl, setQrDataUrl] = useState('');
+    const [mergedImage, setMergedImage] = useState('');
     const [isClosing, setIsClosing] = useState(false);
     const qrValue = `http://localhost:6868/table/${tableId}`;
     
     useEffect(() => {
-        const generateQR = async () => {
+        const generateMergedImage = async () => {
             try {
-                const url = await QRCode.toDataURL(qrValue, {
-                    width: 256,
-                    margin: 2,
-                    errorCorrectionLevel: 'H'
+                // Tạo canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = 1414;
+                canvas.height = 2000;
+                const ctx = canvas.getContext('2d');
+
+                // Load template
+                const template = new Image();
+                template.src = qrTemplate;
+                
+                await new Promise((resolve) => {
+                    template.onload = () => {
+                        // Vẽ template
+                        ctx.drawImage(template, 0, 0, 1414, 2000);
+                        
+                        // Tạo QR code trên canvas tạm thời
+                        const qrCanvas = document.createElement('canvas');
+                        QRCode.toCanvas(qrCanvas, qrValue, {
+                            width: 650,
+                            margin: 0
+                        }, () => {
+                            // Vẽ QR code vào vị trí mong muốn trên template
+                            ctx.drawImage(qrCanvas, 380, 790); // x=(1414-400)/2, y=800 (có thể điều chỉnh)
+                            setMergedImage(canvas.toDataURL());
+                            resolve();
+                        });
+                    };
                 });
-                setQrDataUrl(url);
             } catch (err) {
-                console.error('Error generating QR code:', err);
+                console.error('Error generating merged image:', err);
             }
         };
         
-        generateQR();
+        generateMergedImage();
     }, [qrValue]);
 
     const handleClose = () => {
@@ -41,22 +64,22 @@ const QRModalComponent = ({ tableId, onClose }) => {
                     <button onClick={handleClose}>&times;</button>
                 </div>
                 <div className="qr-modal-body">
-                    {qrDataUrl && (
+                    {mergedImage && (
                         <img 
-                            src={qrDataUrl} 
+                            src={mergedImage} 
                             alt="QR Code"
+                            style={{ width: '100%', maxWidth: '400px' }}
                         />
                     )}
-                    <p className="qr-link">{qrValue}</p>
                 </div>
                 <div className="qr-modal-footer">
                     <button 
                         className="download-btn" 
                         onClick={() => {
-                            if (qrDataUrl) {
+                            if (mergedImage) {
                                 const link = document.createElement('a');
                                 link.download = `table-qr-${tableId}.png`;
-                                link.href = qrDataUrl;
+                                link.href = mergedImage;
                                 link.click();
                             }
                         }}

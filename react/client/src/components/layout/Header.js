@@ -35,12 +35,12 @@ function Header() {
                   <img src="assets/img/logo.png" alt="" />
                 </Link>
               </div>
-              {currentTableId && (
+              {/* {currentTableId && (
                 <div className="table-info">
                   <span className="table-label">Bàn:</span>
                   <span className="table-number">{tableName}</span>
                 </div>
-              )}
+              )} */}
               <nav className="main-menu">
                 <ul>
                   <li><NavLink to="/" className={({isActive}) => isActive ? "current-list-item" : ""}>

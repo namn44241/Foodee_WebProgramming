@@ -1,6 +1,7 @@
 // src/components/home/HomeSlider.js
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import HelpButton from '../common/HelpButton';
 
 function HomeSlider() {
   useEffect(() => {
@@ -64,7 +65,7 @@ function HomeSlider() {
                   <h1>Mừng Bạn Đã Tới Nhà Hàng </h1>
                   <div className="hero-btns">
                     <a href="menu" className="boxed-btn">Đặt món</a>
-                    <a href="contact" className="bordered-btn">Cần trợ giúp?</a>
+                    <HelpButton />
                   </div>
                 </div>
               </div>
@@ -84,7 +85,7 @@ function HomeSlider() {
                   <h1>Chuẩn "Cơm Mẹ Nấu" Với Các Đầu Bếp Hàng Đầu</h1>
                   <div className="hero-btns">
                     <a href="menu" className="boxed-btn">Đặt món</a>
-                    <a href="contact" className="bordered-btn">Cần trợ giúp?</a>
+                    <HelpButton />
                   </div>
                 </div>
               </div>
@@ -104,7 +105,7 @@ function HomeSlider() {
                   <h1>100% Nguyên Liệu Chuẩn OCOP 4 Sao</h1>
                   <div className="hero-btns">
                     <a href="menu" className="boxed-btn">Đặt món</a>
-                    <a href="contact" className="bordered-btn">Cần trợ giúp?</a>
+                    <HelpButton />
                   </div>
                 </div>
               </div>

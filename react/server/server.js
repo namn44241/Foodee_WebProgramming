@@ -43,11 +43,13 @@ const orderRoutes = require('./src/routes/orderRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes'); 
 const productOptionRoutes = require('./src/routes/productOptionRoutes');
 const cartRoutes = require('./src/routes/cartRoutes');
+const supportRoutes = require('./src/routes/supportRoutes');
 
 // Apply public routes first (không cần auth)
 app.use('/api/auth', authRoutes);
 app.use('/api/cart', cartRoutes); // Cart routes không cần auth
 app.use('/api/products', productRoutes); // Product routes có cả public và protected
+app.use('/api/support', supportRoutes);
 
 // Apply protected routes (cần auth)
 app.use('/api/categories', categoryRoutes);

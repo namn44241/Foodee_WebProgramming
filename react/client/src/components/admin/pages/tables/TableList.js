@@ -4,6 +4,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import QRCode from 'qrcode';
 import qrTemplate from '../../../../assets/images/qr-template.png';
+import { hasPermission } from '../../../../utils/roleConfig';
 
 const QRModalComponent = ({ tableId, onClose, tables }) => {
     const [mergedImage, setMergedImage] = useState('');
@@ -98,6 +99,8 @@ const QRModalComponent = ({ tableId, onClose, tables }) => {
         </div>
     );
 };
+
+const userRole = localStorage.getItem('role');
 
 function TableList() {
   const emptySlots = Array(16).fill(null);
@@ -239,24 +242,26 @@ function TableList() {
 
   const renderTableItem = (table) => {
     return (
-      <div 
-        className={`table-item ${table.status} ${table.table_number === 'CASH' ? 'cashier' : ''}`}
-        draggable={true}
-        onDragStart={(e) => handleDragStart(e, table)}
-      >
-        <div className="table-number">{table.table_number}</div>
-        <div className="table-status">
-          {table.status === 'available' ? 'Hoạt động' : 'Bảo trì'}
+        <div 
+            className={`table-item ${table.status} ${table.table_number === 'CASH' ? 'cashier' : ''}`}
+            draggable={hasPermission(userRole, 'tables', 'edit')}
+            onDragStart={(e) => handleDragStart(e, table)}
+        >
+            <div className="table-number">{table.table_number}</div>
+            <div className="table-status">
+                {table.status === 'available' ? 'Hoạt động' : 'Bảo trì'}
+            </div>
+            <div className="table-actions">
+                {hasPermission(userRole, 'tables', 'edit') && (
+                    <button className="edit-btn" onClick={() => handleEdit(table)}>
+                        <i className="fas fa-edit"></i>
+                    </button>
+                )}
+                <button className="qr-btn" onClick={() => handleShowQR(table.id)}>
+                    <i className="fas fa-qrcode"></i>
+                </button>
+            </div>
         </div>
-        <div className="table-actions">
-          <button className="edit-btn" onClick={() => handleEdit(table)}>
-            <i className="fas fa-edit"></i>
-          </button>
-          <button className="qr-btn" onClick={() => handleShowQR(table.id)}>
-            <i className="fas fa-qrcode"></i>
-          </button>
-        </div>
-      </div>
     );
   };
 
@@ -400,21 +405,23 @@ function TableList() {
               />
             )}
           </div>
-          <button className="add-table-btn" onClick={() => {
-            setIsEditing(false);
-            setEditingTable(null);
-            setShowForm(!showForm);
-          }}>
-            {showForm ? (
-              <>
-                <i className="fas fa-minus"></i> Ẩn form
-              </>
-            ) : (
-              <>
-                <i className="fas fa-plus"></i> Thêm bàn ăn
-              </>
-            )}
-          </button>
+          {hasPermission(userRole, 'tables', 'create') && (
+            <button className="add-table-btn" onClick={() => {
+              setIsEditing(false);
+              setEditingTable(null);
+              setShowForm(!showForm);
+            }}>
+              {showForm ? (
+                <>
+                  <i className="fas fa-minus"></i> Ẩn form
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-plus"></i> Thêm bàn ăn
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 

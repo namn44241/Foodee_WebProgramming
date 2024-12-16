@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import './AdminCategories.css';
+import { hasPermission } from '../../../../utils/roleConfig';
 
 function AdminCategories() {
     const [categories, setCategories] = useState([]);
@@ -21,6 +22,10 @@ function AdminCategories() {
     });
     const [currentPage, setCurrentPage] = useState(1);
     const [categoriesPerPage] = useState(10);
+    const userRole = localStorage.getItem('role');
+    const canEdit = hasPermission(userRole, 'categories', 'edit');
+    const canDelete = hasPermission(userRole, 'categories', 'delete');
+    const canCreate = hasPermission(userRole, 'categories', 'create');
 
     // Fetch categories
     useEffect(() => {
@@ -244,12 +249,14 @@ function AdminCategories() {
                             />
                         )}
                     </div>
-                    <button 
-                        className="add-category-btn"
-                        onClick={() => showForm ? handleCloseForm() : setShowForm(true)}
-                    >
-                        <i className="fas fa-plus"></i> {showForm ? 'Ẩn form' : 'Thêm danh mục'}
-                    </button>
+                    {canCreate && (
+                        <button 
+                            className="add-category-btn"
+                            onClick={() => showForm ? handleCloseForm() : setShowForm(true)}
+                        >
+                            <i className="fas fa-plus"></i> {showForm ? 'Ẩn form' : 'Thêm danh mục'}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -355,12 +362,16 @@ function AdminCategories() {
                                     </span>
                                 </td>
                                 <td>
-                                    <button className="edit-btn" onClick={() => handleEdit(category)}>
-                                        <i className="fas fa-edit"></i>
-                                    </button>
-                                    <button className="delete-btn" onClick={() => handleDelete(category.id)}>
-                                        <i className="fas fa-trash"></i>
-                                    </button>
+                                    {canEdit && (
+                                        <button className="edit-btn" onClick={() => handleEdit(category)}>
+                                            <i className="fas fa-edit"></i>
+                                        </button>
+                                    )}
+                                    {canDelete && (
+                                        <button className="delete-btn" onClick={() => handleDelete(category.id)}>
+                                            <i className="fas fa-trash"></i>
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}

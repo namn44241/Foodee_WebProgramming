@@ -1,10 +1,21 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { hasPermission } from '../../../utils/roleConfig';
 
 function Sidebar() {
     const navigate = useNavigate();
     const username = localStorage.getItem('username');
+    const userRole = localStorage.getItem('role');
+
+    const menuItems = [
+        { path: 'dashboard', icon: 'fas fa-home', label: 'Dashboard' },
+        { path: 'tables', icon: 'fas fa-chair', label: 'Bàn ăn' },
+        { path: 'orders', icon: 'fas fa-shopping-cart', label: 'Đơn hàng' },
+        { path: 'products', icon: 'fas fa-utensils', label: 'Sản phẩm' },
+        { path: 'categories', icon: 'fas fa-tags', label: 'Danh mục' },
+        { path: 'staff', icon: 'fas fa-user-tie', label: 'Nhân viên' }
+    ];
 
     const handleLogout = () => {
         Swal.fire({
@@ -21,7 +32,6 @@ function Sidebar() {
                 localStorage.removeItem('role');
                 localStorage.removeItem('username');
                 navigate('/');
-                
             }
         });
     };
@@ -34,41 +44,18 @@ function Sidebar() {
             </div>
             
             <nav className="sidebar-nav">
-                <NavLink to="/admin/dashboard" className={({isActive}) => isActive ? 'active' : ''}>
-                    <i className="fas fa-home"></i>
-                    <span>Dashboard</span>
-                </NavLink>
-
-                <NavLink to="/admin/tables" className={({isActive}) => isActive ? 'active' : ''}>
-                    <i className="fas fa-chair"></i>
-                    <span>Bàn ăn</span>
-                </NavLink>
-                
-                <NavLink to="/admin/orders" className={({isActive}) => isActive ? 'active' : ''}>
-                    <i className="fas fa-shopping-cart"></i>
-                    <span>Đơn hàng</span>
-                </NavLink>
-                
-                <NavLink to="/admin/products" className={({isActive}) => isActive ? 'active' : ''}>
-                    <i className="fas fa-utensils"></i>
-                    <span>Sản phẩm</span>
-                </NavLink>
-                
-                <NavLink to="/admin/categories" className={({isActive}) => isActive ? 'active' : ''}>
-                    <i className="fas fa-tags"></i>
-                    <span>Danh mục</span>
-                </NavLink>
-                
-                <NavLink to="/admin/staff" className={({isActive}) => isActive ? 'active' : ''}>
-                    <i className="fas fa-user-tie"></i>
-                    <span>Nhân viên</span>
-                </NavLink>
-                
-                <NavLink to="/admin/settings" className={({isActive}) => isActive ? 'active' : ''}>
-                    <i className="fas fa-cog"></i>
-                    <span>Cài đặt</span>
-                </NavLink>
-                
+                {menuItems.map(item => (
+                    hasPermission(userRole, item.path) && (
+                        <NavLink 
+                            key={item.path}
+                            to={`/admin/${item.path}`} 
+                            className={({isActive}) => isActive ? 'active' : ''}
+                        >
+                            <i className={item.icon}></i>
+                            <span>{item.label}</span>
+                        </NavLink>
+                    )
+                ))}
             </nav>
 
             <div className="sidebar-footer">

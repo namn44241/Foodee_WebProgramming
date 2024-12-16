@@ -10,14 +10,14 @@ router.get('/public/:id', productController.getProductById);
 router.get('/related/:id', productController.getRelatedProducts);
 router.get('/toppings/:productId', productController.getProductToppings);
 
-// Protected routes - yêu cầu auth và quyền admin
-router.get('/', auth, checkRole(['admin']), productController.getAdminProducts);
+// Protected routes - cho phép admin, kitchen và staff xem sản phẩm
+router.get('/', auth, checkRole(['admin', 'kitchen', 'staff']), productController.getAdminProducts);
 
-// Middleware cho các routes admin
+// Middleware cho các routes admin - chỉ admin mới được thêm/sửa/xóa
 router.use(auth);
 router.use(checkRole(['admin']));
 
-// Routes quản lý sản phẩm (CRUD)
+// Routes quản lý sản phẩm (CRUD) - chỉ admin
 router.post('/', upload.single('image'), processImage, productController.addProduct);
 router.put('/:id', upload.single('image'), processImage, productController.updateProduct);
 router.delete('/:id', productController.deleteProduct);

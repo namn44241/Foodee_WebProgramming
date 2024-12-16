@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { rolePermissions } from '../../../utils/roleConfig';
 
 function AdminLogin() {
     const [username, setUsername] = useState('');
@@ -34,10 +35,9 @@ function AdminLogin() {
                 password
             });
     
-            console.log('Login response:', response.data); // Thêm log này
+            console.log('Login response:', response.data);
     
             if (response.data.success) {
-                // Kiểm tra token có tồn tại
                 if (!response.data.token) {
                     throw new Error('Token không được trả về từ server');
                 }
@@ -46,10 +46,13 @@ function AdminLogin() {
                 localStorage.setItem('role', response.data.role);
                 localStorage.setItem('username', response.data.username);
                 
-                // Log thông tin đã lưu
                 console.log('Stored token:', localStorage.getItem('token'));
                 console.log('Stored role:', localStorage.getItem('role'));
                 
+                const userRole = response.data.role;
+                const availableRoutes = Object.keys(rolePermissions[userRole] || {});
+                const firstAllowedRoute = availableRoutes[0];
+
                 Swal.fire({
                     icon: 'success',
                     title: 'Thành công',
@@ -57,11 +60,16 @@ function AdminLogin() {
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
-                    navigate('/admin/dashboard');
+                    if (firstAllowedRoute) {
+                        navigate(`/admin/${firstAllowedRoute}`);
+                    } else {
+                        console.error('No available routes for role:', userRole);
+                        navigate('/admin/login');
+                    }
                 });
             }
         } catch (error) {
-            console.error('Login error:', error); // Thêm log lỗi chi tiết
+            console.error('Login error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Lỗi đăng nhập',

@@ -280,7 +280,7 @@ function Dashboard() {
             <div className="dashboard-stats">
                 <div className="stat-card">
                     <i className="fas fa-users"></i>
-                    <h3>Người dùng</h3>
+                    <h3>Nhân viên</h3>
                     <p>{stats.users}</p>
                 </div>
                 <div className="stat-card">

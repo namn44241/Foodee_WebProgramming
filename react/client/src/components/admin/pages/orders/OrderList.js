@@ -3,8 +3,10 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import './OrderList.css';
 import OrderForm from './OrderForm';
+import { hasPermission } from '../../../../utils/roleConfig';
 
 function OrderList() {
+  const userRole = localStorage.getItem('role');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -20,6 +22,10 @@ function OrderList() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [ordersPerPage] = useState(15);
+
+  const canCreateOrder = hasPermission(userRole, 'orders', 'create');
+  const canUpdateStatus = hasPermission(userRole, 'orders', 'updateStatus');
+  const canDeleteOrder = hasPermission(userRole, 'orders', 'delete');
 
   useEffect(() => {
     fetchOrders();
@@ -206,17 +212,19 @@ function OrderList() {
               />
             )}
           </div>
-          <button className="add-order-btn" onClick={handleAddOrder}>
-            {showForm ? (
-              <>
-                <i className="fas fa-minus"></i> Ẩn form
-              </>
-            ) : (
-              <>
-                <i className="fas fa-plus"></i> Thêm đơn hàng
-              </>
-            )}
-          </button>
+          {canCreateOrder && (
+            <button className="add-order-btn" onClick={handleAddOrder}>
+              {showForm ? (
+                <>
+                  <i className="fas fa-minus"></i> Ẩn form
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-plus"></i> Thêm đơn hàng
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -296,12 +304,16 @@ function OrderList() {
                     <button className="edit-btn" onClick={() => handleViewOrder(order)}>
                       <i className="fas fa-print"></i>
                     </button>
-                    <button className="update-btn" onClick={() => handleSetCompleted(order.id)}>
-                      <i className="fas fa-check text-success"></i>
-                    </button>
-                    <button className="delete-btn" onClick={() => handleSetPending(order.id)}>
-                      <i className="fas fa-times text-danger"></i>
-                    </button>
+                    {canUpdateStatus && (
+                      <>
+                        <button className="update-btn" onClick={() => handleSetCompleted(order.id)}>
+                          <i className="fas fa-check text-success"></i>
+                        </button>
+                        <button className="delete-btn" onClick={() => handleSetPending(order.id)}>
+                          <i className="fas fa-times text-danger"></i>
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))

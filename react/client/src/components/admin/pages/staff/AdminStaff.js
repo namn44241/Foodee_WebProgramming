@@ -18,6 +18,45 @@ function AdminStaff() {
     const [currentPage, setCurrentPage] = useState(1);
     const [staffsPerPage] = useState(10);
 
+    const permissionMatrix = {
+        dashboard: {
+            name: "Bảng điều khiển",
+            admin: "Đầy đủ quyền",
+            kitchen: "Không có quyền",
+            staff: "Không có quyền"
+        },
+        tables: {
+            name: "Bàn ăn",
+            admin: "Đầy đủ quyền",
+            kitchen: "Chỉ xem",
+            staff: "Chỉ xem"
+        },
+        orders: {
+            name: "Đơn hàng", 
+            admin: "Đầy đủ quyền",
+            kitchen: "Chỉ xem",
+            staff: "Đầy đủ quyền"
+        },
+        products: {
+            name: "Sản phẩm",
+            admin: "Đầy đủ quyền", 
+            kitchen: "Chỉ xem",
+            staff: "Chỉ xem"
+        },
+        categories: {
+            name: "Danh mục",
+            admin: "Đầy đủ quyền",
+            kitchen: "Chỉ xem", 
+            staff: "Chỉ xem"
+        },
+        staff: {
+            name: "Nhân viên",
+            admin: "Đầy đủ quyền",
+            kitchen: "Không có quyền",
+            staff: "Không có quyền" 
+        }
+    };
+
     useEffect(() => {
         fetchStaffs();
     }, []);
@@ -254,6 +293,30 @@ function AdminStaff() {
                     </div>
                 </div>
             )}
+
+            <div className="permission-table">
+                <h3>Bảng phân quyền</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Chức năng</th>
+                            <th>Quản trị viên</th>
+                            <th>Nhà bếp</th>
+                            <th>Nhân viên</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {Object.values(permissionMatrix).map((permission, index) => (
+                            <tr key={index}>
+                                <td>{permission.name}</td>
+                                <td className="permission admin">{permission.admin}</td>
+                                <td className="permission kitchen">{permission.kitchen}</td>
+                                <td className="permission staff">{permission.staff}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
 
             {/* Bảng danh sách nhân viên */}
             <div className="staff-table">

@@ -193,3 +193,57 @@
 .staff-table tr:nth-child(8) { animation-delay: 0.45s; }
 .staff-table tr:nth-child(9) { animation-delay: 0.5s; }
 .staff-table tr:nth-child(10) { animation-delay: 0.55s; }
+
+.permission-table {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.permission-table h3 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+.permission-table table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.permission-table th,
+.permission-table td {
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #ddd;
+  width: 25%;
+}
+
+.permission-table th:first-child,
+.permission-table td:first-child {
+  width: 20%;
+}
+
+.permission-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+.permission {
+  font-size: 14px;
+}
+
+.permission.admin {
+  color: #2ecc71;
+}
+
+.permission.kitchen {
+  color: #f39c12;
+}
+
+.permission.staff {
+  color: #3498db;
+}

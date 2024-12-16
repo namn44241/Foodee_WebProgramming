@@ -23,6 +23,7 @@ import TableList from './components/admin/pages/tables/TableList';
 import { TableProvider } from './contexts/TableContext';
 import TableRedirect from './components/table/TableRedirect';
 import AdminStaff from './components/admin/pages/staff/AdminStaff';
+import PermissionRoute from './components/common/PermissionRoute';
 
 
 // Protected Route Component
@@ -78,18 +79,42 @@ function App() {
         <Routes>
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/admin" element={
-                    <ProtectedRoute>
-                        <AdminLayout />
-                    </ProtectedRoute>
-                }>
-                    <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="products" element={<AdminProducts />} />
-                    <Route path="categories" element={<AdminCategories />} /> 
-                    <Route path="orders" element={<OrderList />} />
-                    <Route path="tables" element={<TableList />} />
-                    <Route path="staff" element={<AdminStaff />} />
-                </Route>
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <AdminLayout />
+            </ProtectedRoute>
+          }>
+            <Route path="dashboard" element={
+              <PermissionRoute requiredPermission="dashboard">
+                <Dashboard />
+              </PermissionRoute>
+            } />
+            <Route path="products" element={
+              <PermissionRoute requiredPermission="products">
+                <AdminProducts />
+              </PermissionRoute>
+            } />
+            <Route path="categories" element={
+              <PermissionRoute requiredPermission="categories">
+                <AdminCategories />
+              </PermissionRoute>
+            } />
+            <Route path="orders" element={
+              <PermissionRoute requiredPermission="orders">
+                <OrderList />
+              </PermissionRoute>
+            } />
+            <Route path="tables" element={
+              <PermissionRoute requiredPermission="tables">
+                <TableList />
+              </PermissionRoute>
+            } />
+            <Route path="staff" element={
+              <PermissionRoute requiredPermission="staff">
+                <AdminStaff />
+              </PermissionRoute>
+            } />
+          </Route>
 
           {/* Public Routes */}
           <Route element={<Layout />}>

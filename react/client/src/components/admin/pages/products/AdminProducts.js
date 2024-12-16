@@ -3,6 +3,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import './AdminProducts.css';
 // import './ProductOptionModal.css';
+import { hasPermission } from '../../../../utils/roleConfig';
 
 function AdminProducts() {
     const [products, setProducts] = useState([]);
@@ -33,6 +34,11 @@ function AdminProducts() {
     });
     const [currentPage, setCurrentPage] = useState(1);
     const [productsPerPage] = useState(15);
+
+    const userRole = localStorage.getItem('role');
+    const canEdit = hasPermission(userRole, 'products', 'edit');
+    const canDelete = hasPermission(userRole, 'products', 'delete');
+    const canCreate = hasPermission(userRole, 'products', 'create');
 
     // Định nghĩa fetchProducts ở ngoài useEffect
     const fetchProducts = async () => {
@@ -358,7 +364,6 @@ function AdminProducts() {
 
     const handleSearch = (value) => {
         setSearchTerm(value);
-        setCurrentPage(1); // Reset về trang 1 khi tìm kiếm
         if (!value.trim()) {
             setFilteredProducts(products);
             return;
@@ -453,26 +458,28 @@ function AdminProducts() {
                             />
                         )}
                     </div>
-                    <button 
-                        className="add-product-btn"
-                        onClick={() => {
-                            if (showForm) {
-                                handleCloseForm();
-                            } else {
-                                handleShowAddForm();
-                            }
-                        }}
-                    >
-                        {showForm ? (
-                            <>
-                                <i className="fas fa-minus"></i> Ẩn form
-                            </>
-                        ) : (
-                            <>
-                                <i className="fas fa-plus"></i> Thêm sản phẩm
-                            </>
-                        )}
-                    </button>
+                    {canCreate && (
+                        <button 
+                            className="add-product-btn"
+                            onClick={() => {
+                                if (showForm) {
+                                    handleCloseForm();
+                                } else {
+                                    handleShowAddForm();
+                                }
+                            }}
+                        >
+                            {showForm ? (
+                                <>
+                                    <i className="fas fa-minus"></i> Ẩn form
+                                </>
+                            ) : (
+                                <>
+                                    <i className="fas fa-plus"></i> Thêm sản phẩm
+                                </>
+                            )}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -726,12 +733,16 @@ function AdminProducts() {
                                     </span>
                                 </td>
                                 <td>
-                                    <button className="edit-btn" onClick={() => handleEdit(product)}>
-                                        <i className="fas fa-edit"></i>
-                                    </button>
-                                    <button className="delete-btn" onClick={() => handleDelete(product.id)}>
-                                        <i className="fas fa-trash"></i>
-                                    </button>
+                                    {canEdit && (
+                                        <button className="edit-btn" onClick={() => handleEdit(product)}>
+                                            <i className="fas fa-edit"></i>
+                                        </button>
+                                    )}
+                                    {canDelete && (
+                                        <button className="delete-btn" onClick={() => handleDelete(product.id)}>
+                                            <i className="fas fa-trash"></i>
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}

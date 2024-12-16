@@ -198,31 +198,37 @@ const orderModel = {
                     GROUP_CONCAT(
                         CONCAT(
                             p.name,
-                            CASE 
-                                WHEN oi.order_toppings IS NOT NULL AND oi.order_toppings != '[]' 
-                                THEN CONCAT(' - ', 
-                                    REPLACE(
+                            COALESCE(
+                                CASE 
+                                    WHEN oi.order_toppings IS NOT NULL 
+                                    AND oi.order_toppings != '[]' 
+                                    AND oi.order_toppings != ''
+                                    THEN CONCAT(' - ', 
                                         REPLACE(
                                             REPLACE(
-                                                JSON_EXTRACT(oi.order_toppings, '$[*].name'),
-                                                '[', ''
+                                                REPLACE(
+                                                    JSON_EXTRACT(oi.order_toppings, '$[*].name'),
+                                                    '[', ''
+                                                ),
+                                                ']', ''
                                             ),
-                                            ']', ''
-                                        ),
-                                        '"', ''
+                                            '"', ''
+                                        )
                                     )
-                                )
-                                ELSE ''
-                            END,
+                                    ELSE ''
+                                END,
+                                ''
+                            ),
                             ' x',
                             oi.quantity
-                        ) 
-                        ORDER BY oi.id DESC SEPARATOR '\n'
+                        )
+                        SEPARATOR '\n'
                     ) as product_details
                 FROM orders o
                 LEFT JOIN tables t ON o.table_id = t.id
-                INNER JOIN order_items oi ON o.id = oi.order_id
-                INNER JOIN products p ON oi.product_id = p.id
+                LEFT JOIN order_items oi ON o.id = oi.order_id
+                LEFT JOIN products p ON oi.product_id = p.id
+                WHERE p.name IS NOT NULL
                 GROUP BY 
                     o.id,
                     o.order_code,
@@ -236,7 +242,7 @@ const orderModel = {
             return orders.map(order => ({
                 ...order,
                 product_details: order.product_details ? 
-                    order.product_details.split('\n') : [],
+                    order.product_details.split('\n').filter(detail => detail.trim() !== '') : [],
                 total_amount: parseFloat(order.total_amount || 0)
             }));
         } catch (error) {

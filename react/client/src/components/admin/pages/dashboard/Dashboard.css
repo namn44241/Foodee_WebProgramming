@@ -2,7 +2,7 @@
     padding: 20px;
     background: #f5f6fa;
     height: 100%;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
 .dashboard-header {
@@ -67,6 +67,7 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
+    margin-bottom: 30px;
 }
 
 .chart-container {
@@ -74,7 +75,9 @@
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    height: 400px;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
 }
 
 .chart-container h3 {

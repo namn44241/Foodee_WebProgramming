@@ -4,23 +4,27 @@ import {
     Chart as ChartJS,
     CategoryScale,
     LinearScale,
+    PointElement,
+    LineElement,
     BarElement,
+    ArcElement,
     Title,
     Tooltip,
-    Legend,
-    ArcElement
+    Legend
 } from 'chart.js';
-import { Bar, Pie } from 'react-chartjs-2';
+import { Bar, Pie, Line, Chart } from 'react-chartjs-2';
 import './Dashboard.css';
 
 ChartJS.register(
     CategoryScale,
     LinearScale,
+    PointElement,
+    LineElement,
     BarElement,
+    ArcElement,
     Title,
     Tooltip,
-    Legend,
-    ArcElement
+    Legend
 );
 
 function Dashboard() {
@@ -33,7 +37,8 @@ function Dashboard() {
         orders: 0,
         revenue: 0,
         revenueByMonth: [],
-        topProducts: []
+        topProducts: [],
+        ordersByMonth: []
     });
 
     useEffect(() => {
@@ -84,6 +89,17 @@ function Dashboard() {
         }]
     };
 
+    const revenueChartOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.5,
+        plugins: {
+            legend: {
+                position: 'top',
+            }
+        }
+    };
+
     const topProductsData = {
         labels: stats.topProducts?.map(item => item.name) || [],
         datasets: [{
@@ -97,6 +113,102 @@ function Dashboard() {
                 '#9966FF'
             ]
         }]
+    };
+
+    const topProductsOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.5,
+        plugins: {
+            legend: {
+                position: 'right'
+            }
+        }
+    };
+
+    const ordersByMonthData = {
+        labels: stats.ordersByMonth?.map(item => item.month) || [],
+        datasets: [{
+            label: 'Số đơn hàng',
+            data: stats.ordersByMonth?.map(item => item.count) || [],
+            borderColor: '#2ecc71',
+            backgroundColor: '#2ecc71',
+            tension: 0.4,
+            fill: false
+        }]
+    };
+
+    const ordersByMonthOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.5,
+        plugins: {
+            legend: {
+                position: 'top'
+            }
+        }
+    };
+
+    const mixedChartData = {
+        labels: stats.revenueByMonth?.map(item => item.month) || [],
+        datasets: [
+            {
+                type: 'line',
+                label: 'Doanh thu',
+                data: stats.revenueByMonth?.map(item => item.revenue) || [],
+                borderColor: '#F28123',
+                backgroundColor: 'rgba(242, 129, 35, 0.1)',
+                yAxisID: 'y',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                type: 'bar',
+                label: 'Số đơn hàng',
+                data: stats.ordersByMonth?.map(item => item.count) || [],
+                backgroundColor: 'rgba(46, 204, 113, 0.6)',
+                yAxisID: 'y1',
+                borderRadius: 4
+            }
+        ]
+    };
+
+    const mixedChartOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 1.5,
+        plugins: {
+            legend: {
+                position: 'top',
+                align: 'start'
+            },
+            title: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                ticks: {
+                    callback: function(value) {
+                        return formatCurrency(value);
+                    }
+                }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                grid: {
+                    drawOnChartArea: false
+                },
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
     };
 
     return (
@@ -142,52 +254,19 @@ function Dashboard() {
             <div className="dashboard-charts">
                 <div className="chart-container">
                     <h3>Doanh thu theo tháng</h3>
-                    <Bar 
-                        data={revenueChartData} 
-                        options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'top',
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Biểu đồ doanh thu'
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        callback: function(value) {
-                                            return new Intl.NumberFormat('vi-VN', {
-                                                style: 'currency',
-                                                currency: 'VND',
-                                                maximumFractionDigits: 0
-                                            }).format(value);
-                                        }
-                                    }
-                                }
-                            }
-                        }} 
-                    />
+                    <Bar data={revenueChartData} options={revenueChartOptions} id="revenue-chart" />
                 </div>
-                
                 <div className="chart-container">
                     <h3>Top sản phẩm bán chạy</h3>
-                    <Pie 
-                        data={topProductsData} 
-                        options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'right',
-                                }
-                            }
-                        }} 
-                    />
+                    <Pie data={topProductsData} options={topProductsOptions} id="products-chart" />
+                </div>
+                <div className="chart-container">
+                    <h3>Số đơn hàng theo tháng</h3>
+                    <Line data={ordersByMonthData} options={ordersByMonthOptions} id="orders-chart" />
+                </div>
+                <div className="chart-container">
+                    <h3>Doanh thu và số đơn hàng theo tháng</h3>
+                    <Chart type="scatter" data={mixedChartData} options={mixedChartOptions} />
                 </div>
             </div>
         </div>

@@ -76,6 +76,19 @@ const DashboardController = {
             `);
             console.log('Top products:', topProducts);
 
+            // Sửa lại query đếm số đơn hàng theo tháng
+            const [ordersByMonth] = await db.query(`
+                SELECT 
+                    DATE_FORMAT(created_at, '%m/%Y') as month,
+                    COUNT(*) as count
+                FROM orders 
+                WHERE status = 'completed'
+                    AND created_at >= DATE_SUB(CURRENT_DATE, INTERVAL 6 MONTH)
+                GROUP BY month
+                ORDER BY month ASC
+            `);
+            console.log('Orders by month:', ordersByMonth);
+
             const responseData = {
                 users: userCount[0].total,
                 categories: categoryCount[0].total,
@@ -84,7 +97,8 @@ const DashboardController = {
                 orders: orderCount[0].total,
                 revenue: revenue[0].total,
                 revenueByMonth: revenueByMonth,
-                topProducts: topProducts
+                topProducts: topProducts,
+                ordersByMonth: ordersByMonth
             };
 
             console.log('Final response data:', responseData);

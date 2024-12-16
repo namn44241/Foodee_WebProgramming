@@ -2,7 +2,75 @@ import React, { useState, useEffect } from 'react';
 import './TableList.css';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { QRCodeCanvas } from 'qrcode.react';
+import QRCode from 'qrcode';
+
+const QRModalComponent = ({ tableId, onClose }) => {
+    const [qrDataUrl, setQrDataUrl] = useState('');
+    const [isClosing, setIsClosing] = useState(false);
+    const qrValue = `http://localhost:6868/table/${tableId}`;
+    
+    useEffect(() => {
+        const generateQR = async () => {
+            try {
+                const url = await QRCode.toDataURL(qrValue, {
+                    width: 256,
+                    margin: 2,
+                    errorCorrectionLevel: 'H'
+                });
+                setQrDataUrl(url);
+            } catch (err) {
+                console.error('Error generating QR code:', err);
+            }
+        };
+        
+        generateQR();
+    }, [qrValue]);
+
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            onClose();
+        }, 300);
+    };
+
+    return (
+        <div className={`qr-modal-overlay ${isClosing ? 'closing' : ''}`}>
+            <div className={`qr-modal ${isClosing ? 'closing' : ''}`}>
+                <div className="qr-modal-header">
+                    <h3>Mã QR cho bàn</h3>
+                    <button onClick={handleClose}>&times;</button>
+                </div>
+                <div className="qr-modal-body">
+                    {qrDataUrl && (
+                        <img 
+                            src={qrDataUrl} 
+                            alt="QR Code"
+                        />
+                    )}
+                    <p className="qr-link">{qrValue}</p>
+                </div>
+                <div className="qr-modal-footer">
+                    <button 
+                        className="download-btn" 
+                        onClick={() => {
+                            if (qrDataUrl) {
+                                const link = document.createElement('a');
+                                link.download = `table-qr-${tableId}.png`;
+                                link.href = qrDataUrl;
+                                link.click();
+                            }
+                        }}
+                    >
+                        Tải QR Code
+                    </button>
+                    <button className="close-btn" onClick={handleClose}>
+                        Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 function TableList() {
   const emptySlots = Array(16).fill(null);
@@ -262,41 +330,6 @@ function TableList() {
     setSelectedTableId(null);
   };
 
-  const QRModal = () => {
-    if (!showQRModal || !selectedTableId) return null;
-    
-    const qrValue = `http://localhost:6868/table_id=${selectedTableId}`;
-    
-    return (
-        <div className="qr-modal-overlay" key="qr-modal">
-            <div className="qr-modal">
-                <div className="qr-modal-header">
-                    <h3>Mã QR cho bàn</h3>
-                    <button onClick={handleCloseQR}>&times;</button>
-                </div>
-                <div className="qr-modal-body">
-                    <QRCodeCanvas value={qrValue} size={256} level="H" />
-                    <p className="qr-link">{qrValue}</p>
-                </div>
-                <div className="qr-modal-footer">
-                    <button className="download-btn" onClick={() => {
-                        const canvas = document.querySelector('.qr-modal canvas');
-                        if (canvas) {
-                            const link = document.createElement('a');
-                            link.download = `table-qr-${selectedTableId}.png`;
-                            link.href = canvas.toDataURL();
-                            link.click();
-                        }
-                    }}>
-                        Tải QR Code
-                    </button>
-                    <button className="close-btn" onClick={handleCloseQR}>Đóng</button>
-                </div>
-            </div>
-        </div>
-    );
-  };
-
   return (
     <div className="table-management">
       <div className="table-header">
@@ -388,7 +421,12 @@ function TableList() {
           ))}
         </div>
       </div>
-      {showQRModal && <QRModal />}
+      {showQRModal && selectedTableId && (
+        <QRModalComponent 
+          tableId={selectedTableId}
+          onClose={handleCloseQR}
+        />
+      )}
     </div>
   );
 }

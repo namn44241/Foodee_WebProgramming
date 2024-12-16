@@ -55,19 +55,6 @@ const tableController = {
             const { id } = req.params;
             const { table_number, status, position } = req.body;
 
-            // Kiểm tra xem có phải bàn CASH không
-            const [existingTable] = await db.execute(
-                'SELECT * FROM tables WHERE id = ?',
-                [id]
-            );
-
-            if (existingTable[0].table_number === 'CASH') {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Không thể cập nhật bàn thu ngân'
-                });
-            }
-
             await db.execute(
                 'UPDATE tables SET table_number = ?, status = ?, position = ? WHERE id = ?',
                 [table_number, status, position, id]

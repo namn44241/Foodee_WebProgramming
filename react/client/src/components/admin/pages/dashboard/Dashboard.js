@@ -14,6 +14,7 @@ import {
 } from 'chart.js';
 import { Bar, Pie, Line, Chart } from 'react-chartjs-2';
 import './Dashboard.css';
+import Swal from 'sweetalert2';
 
 ChartJS.register(
     CategoryScale,
@@ -211,11 +212,69 @@ function Dashboard() {
         }
     };
 
+    const handleExportOrders = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get('http://localhost:5001/api/dashboard/export/orders', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                responseType: 'blob'
+            });
+            
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'orders.xlsx');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            console.error('Error exporting orders:', error);
+            Swal.fire('Lỗi', 'Không thể xuất dữ liệu đơn hàng', 'error');
+        }
+    };
+
+    const handleExportRevenue = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get('http://localhost:5001/api/dashboard/export/revenue', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                responseType: 'blob'
+            });
+            
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'revenue.xlsx');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            console.error('Error exporting revenue:', error);
+            Swal.fire('Lỗi', 'Không thể xuất dữ liệu doanh thu', 'error');
+        }
+    };
+
     return (
         <div className="admin-dashboard">
             <div className="dashboard-header">
-                <h2>Bảng điều khiển</h2>
-                <p>Xin chào, {username}!</p>
+                <div className="header-content">
+                    <h2>Bảng điều khiển</h2>
+                    <p>Xin chào, {username}!</p>
+                </div>
+                <div className="export-buttons">
+                    <button className="btn btn-primary me-2" onClick={handleExportOrders}>
+                        <i className="fas fa-file-export me-2"></i>
+                        Xuất đơn hàng
+                    </button>
+                    <button className="btn btn-success" onClick={handleExportRevenue}>
+                        <i className="fas fa-chart-line me-2"></i>
+                        Xuất doanh thu
+                    </button>
+                </div>
             </div>
             
             <div className="dashboard-stats">

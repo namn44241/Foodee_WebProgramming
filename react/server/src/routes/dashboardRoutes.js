@@ -8,5 +8,7 @@ router.get('/stats', auth, checkRole(['admin']), DashboardController.getStats);
 
 // router.get('/stats', DashboardController.getStats);
 
+router.get('/export/orders', DashboardController.exportOrders);
+router.get('/export/revenue', DashboardController.exportRevenue);
 
 module.exports = router;

@@ -68,8 +68,15 @@ function CartTotal() {
         const response = await axios.post('http://localhost:5001/api/orders/add', orderData);
 
         if (response.data.success) {
+          // Gửi thông báo qua Telegram sau khi lưu đơn hàng thành công
+          await axios.post('http://localhost:5001/api/support/notify-order', {
+            tableId: parseInt(tableId),
+            products: cartItems,
+            totalAmount: calculateTotal()
+          });
+
           await Swal.fire({
-            title: 'Thanh toán thành công!',
+            title: 'Thanh toán thành công!', 
             text: 'Cảm ơn bạn đã đặt hàng',
             icon: 'success',
             timer: 2000

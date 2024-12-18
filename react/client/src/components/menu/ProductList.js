@@ -180,8 +180,8 @@ function ProductList({ filter, viewMode }) {
                       className="cart-btn"
                       onClick={() => handleAddToCart(product)}
                     >
-                      <i className="fas fa-plus"></i>
-                      <span>Thêm vào Giỏ</span>
+                      <i className="fas fa-cart-plus"></i>
+                      <span> Thêm vào giỏ</span>
                     </button>
                   </div>
                 </div>

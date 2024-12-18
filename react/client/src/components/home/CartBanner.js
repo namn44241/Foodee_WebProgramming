@@ -1,7 +1,44 @@
 // src/components/home/CartBanner.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 function CartBanner() {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  });
+
+  useEffect(() => {
+    // Set thời gian kết thúc là 23:59:59 ngày 31/12/2024
+    const endDate = new Date(2024, 11, 31, 23, 59, 59);
+
+    const timer = setInterval(() => {
+      const now = new Date();
+      const difference = endDate.getTime() - now.getTime();
+
+      if (difference > 0) {
+        // Tính toán ngày, giờ, phút, giây còn lại
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        setTimeLeft({
+          days,
+          hours,
+          minutes,
+          seconds
+        });
+      } else {
+        clearInterval(timer);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <section className="cart-banner pt-100 pb-100">
       <div className="container">
@@ -35,25 +72,25 @@ function CartBanner() {
 
             {/* Countdown Timer */}
             <div className="time-counter">
-              <div className="time-countdown clearfix" data-countdown="2020/2/01">
+              <div className="time-countdown clearfix">
                 <div className="counter-column">
                   <div className="inner">
-                    <span className="count">00</span>Ngày
+                    <span className="count">{String(timeLeft.days).padStart(2, '0')}</span>Ngày
                   </div>
                 </div>
                 <div className="counter-column">
                   <div className="inner">
-                    <span className="count">00</span>Giờ
+                    <span className="count">{String(timeLeft.hours).padStart(2, '0')}</span>Giờ
                   </div>
                 </div>
                 <div className="counter-column">
                   <div className="inner">
-                    <span className="count">00</span>Phút
+                    <span className="count">{String(timeLeft.minutes).padStart(2, '0')}</span>Phút
                   </div>
                 </div>
                 <div className="counter-column">
                   <div className="inner">
-                    <span className="count">00</span>Giây
+                    <span className="count">{String(timeLeft.seconds).padStart(2, '0')}</span>Giây
                   </div>
                 </div>
               </div>

@@ -212,9 +212,9 @@
 	    top: -35px;
 	}
 
-	span.close-btn {
+	/* span.close-btn {
 		right: 35px;
-	}
+	} */
 	.header-icons {
 	    text-align: center;
 	}
@@ -556,6 +556,97 @@
 	    z-index: 999;
 	    color: #fff;
 	}
+
+	/* Styles cho search area trên mobile */
+	.search-area .search-results {
+		max-height: 60vh; /* Giới hạn chiều cao là 60% viewport height */
+		overflow-y: auto; /* Thêm thanh cuộn dọc */
+		padding: 10px;
+	}
+
+	/* Đảm bảo search bar luôn hiển thị */
+	.search-bar-tablecell {
+		position: relative;
+		padding-bottom: 15px;
+	}
+
+	/* Điều chỉnh grid cho kết quả tìm kiếm */
+	.search-results .row {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 10px;
+		margin: 0;
+	}
+
+	/* Điều chỉnh style cho card trong kết quả tìm kiếm */
+	.search-results .card {
+		margin-bottom: 10px;
+	}
+
+	/* Custom scrollbar cho UX tốt hơn */
+	.search-area .search-results::-webkit-scrollbar {
+		width: 5px;
+	}
+
+	.search-area .search-results::-webkit-scrollbar-track {
+		background: #f1f1f1;
+		border-radius: 10px;
+	}
+
+	.search-area .search-results::-webkit-scrollbar-thumb {
+		background: #F28123;
+		border-radius: 10px;
+	}
+
+	.search-area .search-results::-webkit-scrollbar-thumb:hover {
+		background: #e67615;
+	}
+
+	/* Điều chỉnh vị trí nút đóng */
+	.search-area .close-btn {
+		position: absolute;
+		right: 15px;
+		top: 15px;
+		z-index: 999;
+	}
+
+	/* Điều chỉnh form tìm kiếm */
+	.search-bar-tablecell {
+		padding-top: 40px; /* Tạo khoảng trống cho nút đóng */
+	}
+
+	.search-bar-tablecell form {
+		display: flex;
+		gap: 10px; /* Tạo khoảng cách giữa input và nút tìm kiếm */
+		margin-top: 15px;
+	}
+
+	.search-bar-tablecell input {
+		flex: 1;
+		min-width: 0; /* Cho phép input co lại */
+	}
+
+	.search-bar-tablecell button {
+		white-space: nowrap; /* Giữ text nút trên cùng một dòng */
+		padding: 8px 15px;
+	}
+
+	/* Đảm bảo nút tìm kiếm không bị xuống dòng */
+	.search-bar-tablecell form button {
+		flex-shrink: 0;
+	}
+
+	/* Style riêng cho nút tìm kiếm trên mobile */
+	.search-bar-tablecell button[type=submit] {
+		padding: 8px 12px;  
+		font-size: 14px;  /* Giảm font size */
+		font-weight: 800;
+	}
+
+	.search-bar-tablecell button[type=submit] i {
+		font-size: 12px;
+		margin-left: 5px;
+	}
 }
 /* Wide Mobile Layout: 480px. */
 @media only screen and (min-width: 480px) and (max-width: 767px) { 
@@ -577,9 +668,47 @@
 	    display: block;
 	}
 }
-/* Mobile Layout: 767px. */
+/* Mobile Layout: 767px */
 @media only screen and (max-width: 767px) {
     .homepage-slider .owl-nav {
         display: none !important;
+    }
+	/* body img {
+		max-width: 50%;
+	} */
+	*, ::after, ::before {
+		box-sizing: border-box;
+	}
+	div {
+		display: block;
+		unicode-bidi: isolate;
+	}
+    .card-img, .card-img-top {
+        max-width: 150px;  /* Giảm kích thước ảnh */
+        height: auto;
+        margin: 0 auto;
+    }
+    
+    .card.h-100 {
+        max-width: 200px;  /* Giảm kích thước card */
+        margin: 10px auto;
+    }
+    
+    /* .col-md-4.mb-4 {
+        padding: 0 20px;  /* Giảm padding */
+    } */
+    
+    /* Điều chỉnh grid layout cho mobile */
+    .row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);  /* 2 cột trên mobile */
+        gap: 10px;
+    }
+
+
+/* Điều chỉnh thêm cho màn hình nhỏ hơn */
+@media only screen and (max-width: 480px) {
+    .row {
+        grid-template-columns: repeat(1, 1fr);  /* 1 cột với màn hình rất nhỏ */
     }
 }

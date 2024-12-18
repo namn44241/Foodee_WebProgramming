@@ -128,7 +128,7 @@ function SearchArea() {
                               <h5 className="card-title">
                                 <Link to={`/product/${product.id}`}>{product.name}</Link>
                               </h5>
-                              <p className="card-text">{product.description}</p>
+                              {/* <p className="card-text">{product.description}</p> */}
                               <p className="card-text">
                                 <strong>Giá: </strong>
                                 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}

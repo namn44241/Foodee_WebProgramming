@@ -87,9 +87,8 @@ function ProductList({ filter, viewMode }) {
         id: selectedProduct.id,
         name: selectedProduct.name,
         price: selectedProduct.price,
-        image_name: selectedProduct.image_name,
-        toppings: selectedToppings
-      }, quantity);
+        image_name: selectedProduct.image_name
+      }, quantity, selectedToppings);
 
       setShowToppingModal(false);
       
@@ -171,7 +170,7 @@ function ProductList({ filter, viewMode }) {
                     <Link to={`/product/${product.id}`}>
                       <h4>{product.name}</h4>
                     </Link>
-                    <p>{product.description}</p>
+                    <p className="product-description">{product.description}</p>
                   </div>
                   <div className="col-md-3 text-right">
                     <div className="price mb-2">
@@ -181,7 +180,8 @@ function ProductList({ filter, viewMode }) {
                       className="cart-btn"
                       onClick={() => handleAddToCart(product)}
                     >
-                      <i className="fas fa-shopping-cart"></i> Thêm vào Giỏ
+                      <i className="fas fa-plus"></i>
+                      <span>Thêm vào Giỏ</span>
                     </button>
                   </div>
                 </div>

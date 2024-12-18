@@ -704,6 +704,7 @@
         grid-template-columns: repeat(2, 1fr);  /* 2 cột trên mobile */
         gap: 10px;
     }
+	
 
 
 /* Điều chỉnh thêm cho màn hình nhỏ hơn */

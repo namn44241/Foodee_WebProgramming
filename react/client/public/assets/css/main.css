@@ -2949,3 +2949,136 @@ table.order-details tbody td {
   padding-left: 15px;  /* Chuyển padding sang trái */
 }
 
+/* Style cho mobile list view */
+@media only screen and (max-width: 768px) {
+  /* Ẩn mô tả sản phẩm chỉ trên mobile */
+  .product-list .product-description {
+    display: none;
+  }
+  
+  /* Điều chỉnh layout item trong list */
+  .product-list-item {
+    padding: 8px !important;
+    margin-bottom: 10px !important;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  /* Layout cho item container */
+  .product-list-item .row {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Thu nhỏ và style ảnh sản phẩm */
+  .product-list-item .col-md-3 {
+    width: 80px;
+    padding-right: 12px;
+  }
+  
+  .product-list-item .col-md-3 img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+  
+  /* Style cho phần thông tin sản phẩm */
+  .product-list-item .col-md-6 {
+    flex: 1;
+    padding: 0;
+  }
+  
+  .product-list-item h4 {
+    font-size: 14px;
+    margin: 0 0 4px 0;
+    color: #333;
+  }
+  
+  /* Style cho phần giá và nút thêm */
+  .product-list-item .col-md-3.text-right {
+    width: auto;
+    padding: 0;
+  }
+  
+  .product-list-item .price {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0;
+  }
+  
+  .product-list-item .cart-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border-radius: 50%;
+    background: #F28123;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin-left: 8px;
+  }
+
+  /* Ẩn text "Thêm vào giỏ" trên mobile, chỉ hiện icon */
+  .product-list-item .cart-btn span {
+    display: none;
+  }
+
+  /* Layout cho phần giá và nút */
+  .product-list-item .col-md-3.text-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+}
+
+/* Desktop vẫn giữ nguyên style mặc định */
+
+/* Mobile bottom cart bar */
+@media only screen and (max-width: 768px) {
+  .mobile-cart-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 12px 16px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .mobile-cart-bar .cart-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mobile-cart-bar .cart-count {
+    background: #F28123;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+
+  .mobile-cart-bar .view-cart-btn {
+    background: #F28123;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: none;
+    font-weight: 500;
+  }
+
+  /* Thêm padding bottom cho content để không bị che bởi bottom bar */
+  .main-content {
+    padding-bottom: 60px;
+  }
+}

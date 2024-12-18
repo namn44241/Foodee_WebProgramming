@@ -3,8 +3,14 @@ import ProductList from './ProductList';
 import ProductFilters from './ProductFilters';
 
 function Menu() {
-  const [currentFilter, setCurrentFilter] = useState('*');
-  const [viewMode, setViewMode] = useState('grid');
+  const [filter, setFilter] = useState('*');
+  const [viewMode, setViewMode] = useState(() => {
+    return window.innerWidth <= 768 ? 'list' : 'grid';
+  });
+
+  const toggleView = () => {
+    setViewMode(prevMode => prevMode === 'grid' ? 'list' : 'grid');
+  };
 
   return (
     <>
@@ -26,21 +32,21 @@ function Menu() {
           <div className="row mb-4">
             <div className="col-lg-9">
               <ProductFilters 
-                currentFilter={currentFilter} 
-                onFilterChange={setCurrentFilter} 
+                currentFilter={filter} 
+                onFilterChange={setFilter} 
               />
             </div>
             <div className="col-lg-3 text-right">
               <div className="view-mode-buttons">
                 <button 
                   className={`btn ${viewMode === 'grid' ? 'btn-primary' : 'btn-outline-primary'} mr-2`}
-                  onClick={() => setViewMode('grid')}
+                  onClick={toggleView}
                 >
                   <i className="fas fa-th"></i>
                 </button>
                 <button 
                   className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline-primary'}`}
-                  onClick={() => setViewMode('list')}
+                  onClick={toggleView}
                 >
                   <i className="fas fa-list"></i>
                 </button>
@@ -49,7 +55,7 @@ function Menu() {
           </div>
 
           <ProductList 
-            filter={currentFilter} 
+            filter={filter} 
             viewMode={viewMode}
           />
         </div>

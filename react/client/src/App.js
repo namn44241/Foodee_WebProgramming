@@ -24,6 +24,7 @@ import { TableProvider } from './contexts/TableContext';
 import TableRedirect from './components/table/TableRedirect';
 import AdminStaff from './components/admin/pages/staff/AdminStaff';
 import PermissionRoute from './components/common/PermissionRoute';
+import MobileCartBar from './components/cart/MobileCartBar';
 
 
 // Protected Route Component
@@ -128,6 +129,7 @@ function App() {
             <Route path="/table/:tableId" element={<TableRedirect />} />
           </Route>
         </Routes>
+        <MobileCartBar />
       </CartProvider>
     </TableProvider>
   );
